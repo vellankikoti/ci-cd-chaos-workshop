@@ -79,7 +79,6 @@ nav:
       - "Scenario 03: Auto Scaling": kubernetes/scenario_03_auto_scaling.md
       - "Scenario 04: Blue-Green Deployments": kubernetes/scenario_04_blue_green.md
       - "Scenario 05: GitOps with ArgoCD": kubernetes/scenario_05_gitops_argocd.md
-  - 🎓 Certificate: certificate.md
 
 # Additional configuration for workshop experience
 extra:
@@ -93,10 +92,6 @@ extra:
   extra_javascript:
     - overrides/assets/sidebar-autocollapse.js
     - assets/js/test-loading.js
-    - https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js
-    - assets/js/magic-link-progress.js
-    - assets/js/scenario-progress.js
-    - assets/js/name-input.js
   extra_css:
     # (Removed all custom CSS for default layout)
 
