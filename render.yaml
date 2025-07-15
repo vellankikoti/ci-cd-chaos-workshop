@@ -8,4 +8,4 @@ services:
       mkdocs build
     staticPublishPath: ./site
     plan: free
-    autoDeploy: true 
+    autoDeploy: true

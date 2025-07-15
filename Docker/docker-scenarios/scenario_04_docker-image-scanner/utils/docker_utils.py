@@ -20,18 +20,30 @@ class DockerUtils:
         try:
             if build_context is None:
                 build_context = os.path.dirname(dockerfile_path)
+                dockerfile_name = os.path.basename(dockerfile_path)
+            else:
+                # When using a dedicated build context, Docker expects the file to be named "Dockerfile"
+                dockerfile_name = "Dockerfile"
+            
+            print(f"DEBUG DOCKER_UTILS: build_context={build_context}")
+            print(f"DEBUG DOCKER_UTILS: dockerfile_name={dockerfile_name}")
+            print(f"DEBUG DOCKER_UTILS: image_name={image_name}")
+            print(f"DEBUG DOCKER_UTILS: Files in build_context: {os.listdir(build_context)}")
+            
             image, logs = self.docker_client.images.build(
                 path=build_context,
-                dockerfile=os.path.basename(dockerfile_path),
+                dockerfile=dockerfile_name,
                 tag=image_name,
                 rm=True
             )
             return True, None
         except Exception as e:
             error_message = str(e)
+            print(f"DEBUG DOCKER_UTILS: Exception caught: {error_message}")
             if hasattr(e, 'build_log'):
                 try:
                     error_message = '\n'.join([str(line) for line in e.build_log])
+                    print(f"DEBUG DOCKER_UTILS: Build log: {error_message}")
                 except Exception:
                     pass
             return False, error_message

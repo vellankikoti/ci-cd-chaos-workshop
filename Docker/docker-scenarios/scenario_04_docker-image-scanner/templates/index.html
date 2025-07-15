@@ -29,7 +29,6 @@
                 <div class="input-container">
                     <div class="tab-navigation">
                         <button class="tab-btn active" data-tab="image">🔍 Analyze Image</button>
-                        <button class="tab-btn" data-tab="dockerfile">📄 Analyze Dockerfile</button>
                         <button class="tab-btn" data-tab="compare">⚖️ Compare Images</button>
                     </div>
 
@@ -48,15 +47,6 @@
                                 <button class="example-btn" onclick="document.getElementById('imageName').value='node:16-alpine'">node:16-alpine</button>
                                 <button class="example-btn" onclick="document.getElementById('imageName').value='postgres:13'">postgres:13</button>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Dockerfile Analysis Tab -->
-                    <div id="dockerfile-tab" class="tab-content">
-                        <div class="upload-container">
-                            <label for="dockerfileInput">Upload Dockerfile:</label>
-                            <input type="file" id="dockerfileInput" />
-                            <p class="upload-hint">Upload any file to be treated as a Dockerfile for analysis (file name does not matter).</p>
                         </div>
                     </div>
 
@@ -151,8 +141,7 @@
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p>&copy; 2024 Enterprise Docker Analyzer - Educational Edition</p>
-                <p>Powered by Trivy for real vulnerability scanning</p>
+                <p>Built by Koti with ❤️ for this workshop</p>
             </div>
         </footer>
     </div>

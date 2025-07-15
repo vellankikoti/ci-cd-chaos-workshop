@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
+        SCENARIO_PATH = '/workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_02_testcontainers'
+        IMAGE_NAME = "chaos-workshop-testcontainers"
+        BUILD_TAG = "${BUILD_NUMBER}"
         TESTCONTAINERS_RYUK_DISABLED = 'true'
-        TEST_SCENARIO_DIR = 'Jenkins/jenkins_scenarios/scenario_02_testcontainers'
-        DOCKER_IMAGE_NAME = 'ci-cd-chaos-python:latest'
     }
 
     parameters {
@@ -16,71 +17,88 @@ pipeline {
     }
 
     stages {
-        stage('Checkout Repo') {
+        stage('Verify Local Workspace') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: 'phase-3-jenkins']],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/vellankikoti/ci-cd-chaos-workshop.git'
-                    ]]
-                ])
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                echo "🛠️ Building Docker image: ${DOCKER_IMAGE_NAME}"
-                sh """
-                    docker build \
-                        -t ${DOCKER_IMAGE_NAME} \
-                        -f ${TEST_SCENARIO_DIR}/Dockerfile \
-                        ${TEST_SCENARIO_DIR}
-                """
-            }
-        }
-
-        stage('Pre-Cleanup') {
-            steps {
-                echo "🔪 Pre-cleanup: Killing leftover Testcontainers containers..."
                 sh '''
+                    echo "=== WORKSPACE ==="
+                    pwd
+                    echo "=== Workspace contents ==="
+                    ls -la
+                    echo "=== Checking scenario directory ==="
+                    ls -la ${SCENARIO_PATH}
+
+                    if [ ! -f ${SCENARIO_PATH}/requirements.txt ]; then
+                        echo "ERROR: requirements.txt missing!"
+                        exit 1
+                    else
+                        echo "✅ requirements.txt found!"
+                    fi
+                '''
+            }
+        }
+
+        stage('🔧 Install Python and Dependencies') {
+            steps {
+                sh '''
+                    echo "🔧 Installing Python and dependencies..."
+                    cd ${SCENARIO_PATH}
+                    
+                    # Install Python and pip if not available
+                    if ! command -v python3 &> /dev/null; then
+                        echo "Installing Python3..."
+                        apt-get update
+                        apt-get install -y python3 python3-pip python3-venv
+                    fi
+                    
+                    # Create virtual environment (remove if exists)
+                    echo "Creating virtual environment..."
+                    rm -rf /tmp/testenv
+                    python3 -m venv /tmp/testenv
+                    . /tmp/testenv/bin/activate
+                    
+                    # Install requirements
+                    echo "Installing requirements..."
+                    pip install --no-cache-dir -r requirements.txt
+                    # Ensure SQLAlchemy is available for TestContainers
+                    pip install sqlalchemy==2.0.23
+                    
+                    echo "✅ Dependencies installed successfully!"
+                '''
+            }
+        }
+
+        stage('🧹 Pre-Cleanup') {
+            steps {
+                sh '''
+                    echo "🔪 Pre-cleanup: Killing leftover containers..."
                     docker ps -q --filter name=testcontainers | xargs -r docker rm -f || true
                 '''
             }
         }
 
-        stage('Run Tests Inside Docker') {
+        stage('📊 Run Tests') {
             steps {
                 script {
-                    def testFiles = []
-
                     if (params.TEST_MODE == 'fail') {
-                        testFiles = [
-                            "${TEST_SCENARIO_DIR}/tests/test_postgres_fail.py",
-                            "${TEST_SCENARIO_DIR}/tests/test_redis_fail.py"
-                        ]
-                        echo "Chaos Agent is laughing… we’re running failing tests!"
-                    } else {
-                        testFiles = [
-                            "${TEST_SCENARIO_DIR}/tests/test_postgres_pass.py",
-                            "${TEST_SCENARIO_DIR}/tests/test_redis_pass.py"
-                        ]
-                        echo "Deploying TestContainers — Chaos Agent’s defeat is imminent!"
-                    }
-
-                    docker.image("${DOCKER_IMAGE_NAME}").inside('-u root -v /var/run/docker.sock:/var/run/docker.sock') {
-                        // Install Python requirements (in case any changed)
+                        echo "Chaos Agent is laughing… we're running failing tests!"
                         sh '''
-                            echo "🔧 Installing Python requirements..."
-                            pip install --no-cache-dir -r requirements.txt
+                            cd ${SCENARIO_PATH}
+                            echo "=== Running failing tests ==="
+                            
+                            # Activate virtual environment and run tests
+                            . /tmp/testenv/bin/activate
+                            pytest tests/test_postgres_fail.py tests/test_redis_fail.py
                         '''
-
-                        testFiles.each { testFile ->
-                            sh """
-                                echo "=== Running test: ${testFile} ==="
-                                pytest ${testFile}
-                            """
-                        }
+                    } else {
+                        echo "Deploying TestContainers — Chaos Agent's defeat is imminent!"
+                        sh '''
+                            cd ${SCENARIO_PATH}
+                            echo "=== Running passing tests ==="
+                            
+                            # Activate virtual environment and run tests
+                            . /tmp/testenv/bin/activate
+                            pytest tests/test_postgres_pass.py tests/test_redis_pass.py
+                        '''
                     }
                 }
             }
@@ -90,6 +108,12 @@ pipeline {
     post {
         always {
             echo "✨ Chaos Agent defeated… or plotting his next move!"
+        }
+        success {
+            echo "🎉 All TestContainers tests completed successfully!"
+        }
+        failure {
+            echo "💥 Some TestContainers tests failed - Chaos Agent strikes again!"
         }
     }
 }

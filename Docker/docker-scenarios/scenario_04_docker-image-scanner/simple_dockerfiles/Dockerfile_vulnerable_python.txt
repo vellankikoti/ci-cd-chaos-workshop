@@ -1,0 +1,5 @@
+FROM python:3.8
+WORKDIR /app
+RUN pip install flask==2.0.1
+USER root
+CMD ["python", "-c", "print('Vulnerable Python app running!')"] 

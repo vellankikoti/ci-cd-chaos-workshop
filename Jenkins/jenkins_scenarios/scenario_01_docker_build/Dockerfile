@@ -13,7 +13,7 @@ COPY Jenkins/jenkins_scenarios/scenario_01_docker_build/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app/main_v${APP_VERSION}.py /app/app.py
+COPY Jenkins/jenkins_scenarios/scenario_01_docker_build/app/main_v${APP_VERSION}.py /app/app.py
 
 EXPOSE 3000
 

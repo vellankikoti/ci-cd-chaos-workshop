@@ -1,4 +1,158 @@
-## ✅ Success Criteria
+# 🚀 Scenario 05: EKS Deployment Chaos - Complete Guide
+
+## 🎯 **Scenario Overview**
+
+This scenario demonstrates **real-world Kubernetes deployment patterns** using AWS EKS (Elastic Kubernetes Service). You'll learn how to:
+
+- **Deploy applications to EKS clusters** using Jenkins pipelines
+- **Handle deployment failures** and implement chaos engineering
+- **Monitor deployments** with kubectl commands
+- **Troubleshoot issues** in a production-like environment
+- **Manage AWS credentials** securely in CI/CD pipelines
+
+## 🛠️ **Technical Stack**
+
+- **AWS EKS** - Managed Kubernetes service
+- **Docker** - Containerized deployment tools
+- **kubectl** - Kubernetes command-line tool
+- **AWS CLI** - AWS service management
+- **Jenkins** - CI/CD pipeline orchestration
+
+## 📂 **Project Structure**
+
+```
+scenario_05_deploy_eks/
+├── Dockerfile                    # ✅ Multi-stage build with AWS CLI and kubectl
+├── Jenkinsfile                   # 🆕 NEW - Enhanced standardized pipeline
+├── tests/                        # ✅ Test files for different scenarios
+│   ├── test_kubectl_commands.py
+│   ├── test_deployment.py
+│   ├── test_service.py
+│   └── generate_eks_report.py
+├── manifests/                    # ✅ Kubernetes deployment manifests
+│   ├── deployment-pass.yaml
+│   ├── deployment-fail.yaml
+│   ├── service.yaml
+│   └── namespace.yaml
+└── README.md                     # 🆕 This comprehensive guide
+```
+
+## 🚀 **Pipeline Features**
+
+### **Enhanced Pipeline Structure**
+
+The updated Jenkinsfile includes:
+- ✅ **Standardized Environment Variables** - Uses consistent `SCENARIO_PATH`, `IMAGE_NAME`, `BUILD_TAG`
+- ✅ **Robust Workspace Verification** - Checks for required files and shows workspace contents
+- ✅ **Enhanced Error Handling** - Proper success/failure post actions with clear messaging
+- ✅ **Consistent Stage Naming** - All stages use emojis and follow the same pattern as other scenarios
+
+### **Pipeline Stages**
+
+1. **Verify Local Workspace:** Shows workspace contents and checks for required files (Dockerfile)
+2. **🔧 Build Docker Image:** Builds the deployment environment with AWS CLI and kubectl
+3. **🧹 Pre-Cleanup:** Removes any leftover containers
+4. **🚀 Run EKS Tests:** Executes deployment tests in parallel:
+   - **🔧 kubectl Commands:** Tests basic kubectl functionality
+   - **🚀 Deployment Tests:** Tests application deployment
+   - **🌐 Service Tests:** Tests service creation and networking
+5. **📋 Generate EKS Report:** Creates detailed deployment reports
+6. **📦 Archive Reports:** Makes reports available as Jenkins artifacts
+
+## ⚙️ **Running the Pipeline**
+
+### **Parameters**
+
+- `RUN_KUBECTL_TESTS` - Enable/disable kubectl command tests
+- `RUN_DEPLOYMENT_TESTS` - Enable/disable deployment tests
+- `RUN_SERVICE_TESTS` - Enable/disable service tests
+- `KUBECTL_PASS` - Set kubectl tests to pass/fail mode
+- `DEPLOYMENT_PASS` - Set deployment tests to pass/fail mode
+- `VULNERABILITY_PASS` - Set service tests to pass/fail mode
+
+### **Prerequisites**
+
+1. **AWS EKS Cluster** - Must have an existing EKS cluster
+2. **AWS Credentials** - Configured in Jenkins credential store
+3. **Cluster Access** - Your AWS user must have kubectl access to the cluster
+4. **Docker** - Available on Jenkins agent
+
+## 🎯 **Test Scenarios**
+
+### **✅ Pass Scenario**
+
+The pass scenario demonstrates successful deployment:
+
+1. **Authentication** - Validates AWS credentials and cluster access
+2. **Namespace Creation** - Creates a dedicated namespace for testing
+3. **Deployment** - Deploys a sample application with proper resources
+4. **Service Creation** - Exposes the application via Kubernetes service
+5. **Health Checks** - Verifies the deployment is healthy and accessible
+
+### **❌ Fail Scenario**
+
+The fail scenario demonstrates chaos engineering:
+
+1. **Invalid Resources** - Deploys with impossibly low resource limits
+2. **Broken Health Checks** - Uses incorrect health check endpoints
+3. **Network Issues** - Creates service with wrong port configurations
+4. **Rollback Testing** - Demonstrates proper failure handling and rollback
+
+## 🔧 **Technical Implementation**
+
+### **Docker Image Features**
+
+The multi-stage Dockerfile includes:
+
+- **AWS CLI** - For EKS cluster authentication
+- **kubectl** - For Kubernetes operations
+- **Python** - For test execution and reporting
+- **Security** - Runs as non-root user
+- **Optimization** - Layer caching for fast builds
+
+### **Kubernetes Manifests**
+
+The scenario includes realistic deployment manifests:
+
+- **Namespace isolation** - Dedicated namespace for testing
+- **Resource management** - Proper CPU/memory limits
+- **Health checks** - Liveness and readiness probes
+- **Service networking** - ClusterIP and LoadBalancer services
+- **Security policies** - Pod security standards
+
+## 📊 **Monitoring and Reporting**
+
+### **Real-time Monitoring**
+
+During deployment, you can monitor:
+
+- **Pod Status** - `kubectl get pods -w`
+- **Deployment Progress** - `kubectl rollout status`
+- **Service Endpoints** - `kubectl get endpoints`
+- **Events** - `kubectl get events --sort-by=.metadata.creationTimestamp`
+
+### **Generated Reports**
+
+The pipeline generates comprehensive reports including:
+
+- **Deployment Status** - Success/failure indicators
+- **Resource Usage** - CPU/memory consumption
+- **Network Configuration** - Service and endpoint details
+- **Error Analysis** - Detailed failure information
+- **Performance Metrics** - Deployment timing and efficiency
+
+## 🎓 **Learning Outcomes**
+
+After completing this scenario, attendees understand:
+
+- **Containerized CI/CD** - How to use Docker containers for consistent deployments
+- **EKS Integration** - Real-world Kubernetes deployment patterns
+- **Chaos Engineering** - Intentional failure testing and recovery
+- **kubectl Mastery** - Essential commands for Kubernetes troubleshooting
+- **Security** - AWS credential management in CI/CD pipelines
+- **Monitoring** - Live deployment monitoring and event analysis
+
+## ✅ **Success Criteria**
 
 You've successfully completed Scenario 5 when:
 
@@ -10,20 +164,7 @@ You've successfully completed Scenario 5 when:
 ✅ **Troubleshooting**: You can interpret kubectl output and debug issues  
 ✅ **Cleanup**: Resources are properly cleaned up after tests  
 
-### 🎯 Workshop Learning Outcomes
-
-After completing this scenario, attendees understand:
-
-- **Containerized CI/CD**: How to use Docker containers for consistent deployments
-- **EKS Integration**: Real-world Kubernetes deployment patterns
-- **Chaos Engineering**: Intentional failure testing and recovery
-- **kubectl Mastery**: Essential commands for Kubernetes troubleshooting
-- **Security**: AWS credential management in CI/CD pipelines
-- **Monitoring**: Live deployment monitoring and event analysis
-
----
-
-## 🎉 Advanced Extensions
+## 🎉 **Advanced Extensions**
 
 Ready for more challenges? Try these extensions:
 
@@ -55,9 +196,7 @@ Ready for more challenges? Try these extensions:
 # Implement cross-cluster networking
 ```
 
----
-
-## 📚 Additional Resources
+## 📚 **Additional Resources**
 
 ### Documentation Links
 - [AWS EKS User Guide](https://docs.aws.amazon.com/eks/latest/userguide/)
@@ -106,9 +245,7 @@ docker logs container-id
 docker exec -it container-id /bin/bash
 ```
 
----
-
-## 🎯 Workshop Facilitation Tips
+## 🎯 **Workshop Facilitation Tips**
 
 ### For Instructors
 
@@ -139,9 +276,7 @@ docker exec -it container-id /bin/bash
 - Try modifying the deployment manifests
 - Experiment with kubectl commands
 
----
-
-## 🔧 Customization Options
+## 🔧 **Customization Options**
 
 ### Environment Variables
 
@@ -149,10 +284,10 @@ You can customize the scenario by modifying these environment variables in the J
 
 ```groovy
 environment {
-    SCENARIO_5_PATH = "Jenkins/jenkins_scenarios/scenario_05_deploy_eks"
-    SCENARIO_5_IMAGE = "chaos-workshop-scenario-5:${BUILD_NUMBER}"
-    AWS_PAGER = ""
-    AWS_CLI_AUTO_PROMPT = "off"
+    SCENARIO_PATH = '/workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_05_deploy_eks'
+    IMAGE_NAME = "chaos-workshop-eks-deployment"
+    BUILD_TAG = "${BUILD_NUMBER}"
+    REPORTS_DIR = 'reports'
 }
 ```
 
@@ -162,15 +297,15 @@ Adjust default values in the parameters section:
 
 ```groovy
 parameters {
-    string(
-        name: 'CLUSTER_NAME',
-        defaultValue: 'your-cluster-name',  // Customize this
-        description: 'EKS cluster name to deploy to'
+    booleanParam(
+        name: 'RUN_KUBECTL_TESTS',
+        defaultValue: true,
+        description: '🔧 Run kubectl Command Tests'
     )
-    choice(
-        name: 'AWS_REGION',
-        choices: ['us-east-1', 'your-region'],  // Add your regions
-        description: 'AWS region for EKS cluster'
+    booleanParam(
+        name: 'RUN_DEPLOYMENT_TESTS',
+        defaultValue: true,
+        description: '🚀 Run Deployment Tests'
     )
 }
 ```
@@ -194,9 +329,7 @@ livenessProbe:
     port: 9999  # Wrong port
 ```
 
----
-
-## 🚨 Important Notes
+## 🚨 **Important Notes**
 
 ### Security Considerations
 
@@ -228,9 +361,7 @@ livenessProbe:
 - Implement environment-specific configuration management
 - Add approval gates for production deployments
 
----
-
-## 🐛 Known Issues and Workarounds
+## 🐛 **Known Issues and Workarounds**
 
 ### Issue 1: aws-auth ConfigMap Access
 
@@ -248,624 +379,4 @@ livenessProbe:
 
 **Problem:** Cold EKS clusters may take longer for first deployment
 
-**Workaround:** Allow extra time for the first scenario run after cluster creation
-
----
-
-**🔥 Chaos Agent Status: COMPLETELY DEFEATED! 🔥**
-
-**Your EKS deployment pipeline is now bulletproof against chaos! You've mastered:**
-
-✅ Containerized CI/CD pipelines  
-✅ AWS and Kubernetes authentication  
-✅ Real-time deployment monitoring  
-✅ Chaos engineering principles  
-✅ Production-ready troubleshooting skills  
-
----
-
-*Ready to deploy with confidence! 🚀⚡*
-
----
-
-## 📞 Support and Troubleshooting
-
-If you encounter issues not covered in this guide:
-
-1. **Check the console output** - Most issues are visible in the Jenkins build logs
-2. **Verify prerequisites** - Ensure all required tools and permissions are configured
-3. **Test authentication first** - Use the JenkinsAuth pipeline to validate setup
-4. **Review the Dockerfile** - Understand what tools are available in the container
-5. **Check cluster status** - Verify your EKS cluster is healthy and accessible
-
-**Happy chaos engineering! May your deployments be resilient and your troubleshooting swift! 🎯🔧**# 🚀 Scenario 5: Deploy to EKS - Complete Guide
-
-> **"Chaos Agent's Final Stand: Can your pipeline survive EKS deployment chaos?"**
-
-Welcome to **Scenario 5** of the CI/CD Chaos Workshop! This scenario demonstrates real-world EKS deployment chaos testing with both **successful** and **failing** deployments to help you master Kubernetes troubleshooting.
-
----
-
-## 🎯 What You'll Learn
-
-✅ Deploy Python apps to AWS EKS clusters using containerized pipelines  
-✅ Handle deployment failures with chaos engineering principles  
-✅ Authenticate Jenkins with AWS and Kubernetes securely  
-✅ Monitor live Kubernetes deployments in real-time  
-✅ Troubleshoot common EKS deployment issues  
-✅ Master pass/fail scenario testing with kubectl  
-
----
-
-## 📋 Prerequisites
-
-### 🔧 Required Tools
-
-Your workshop environment needs:
-
-- **Jenkins** (with Docker support)
-- **Docker** (for containerized deployments)
-- **AWS EKS Cluster** (already provisioned)
-- **AWS CLI** v2.x (installed in container)
-- **kubectl** (installed in container)
-
-### 🔌 Required Jenkins Plugins
-
-Install these plugins in Jenkins:
-
-```bash
-# Essential plugins
-- Pipeline
-- Docker Pipeline
-- AWS Credentials
-- Credentials Binding
-```
-
-**Installation via Jenkins CLI:**
-```bash
-jenkins-cli.jar install-plugin pipeline-stage-view docker-workflow aws-credentials-plugin credentials-binding
-```
-
-### 🔐 AWS Permissions Required
-
-Your AWS user/role needs these permissions:
-
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "eks:DescribeCluster",
-                "eks:ListClusters",
-                "eks:AccessKubernetesApi"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "sts:GetCallerIdentity"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-```
-
-### ⚙️ EKS Cluster Requirements
-
-- **EKS Cluster**: Pre-provisioned (default: `eks-cf-stack-eks-cluster`)
-- **Node Groups**: At least 1 node group with capacity for test workloads
-- **aws-auth ConfigMap**: Your AWS user/role must be configured for kubectl access
-
----
-
-## 🛠️ Setup Instructions
-
-### Step 1: Configure AWS Credentials in Jenkins
-
-1. Go to **Jenkins Dashboard** → **Manage Jenkins** → **Credentials**
-2. Click **Global** → **Add Credentials**
-3. Select **Username with password** and configure:
-   - **ID**: `aws-credentials`
-   - **Username**: Your AWS Access Key ID
-   - **Password**: Your AWS Secret Access Key
-
-### Step 2: Configure Pipeline Parameters
-
-Create a Jenkins Pipeline job with these parameters:
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `CLUSTER_NAME` | String | `eks-cf-stack-eks-cluster` | EKS cluster name |
-| `AWS_REGION` | Choice | `us-east-1, us-west-2, us-east-2, eu-west-1` | AWS region |
-| `RUN_SCENARIO_5` | Boolean | `true` | Enable Scenario 5 execution |
-| `SCENARIO_5_PASS` | Boolean | `true` | Run successful deployment test |
-| `SCENARIO_5_FAIL` | Boolean | `true` | Run chaos/failure deployment test |
-| `CLEANUP_AFTER_TESTS` | Boolean | `true` | Clean up resources after tests |
-
----
-
-## 🏗️ Project Structure
-
-Your scenario directory should look like this:
-
-```
-Jenkins/jenkins_scenarios/scenario_05_deploy_eks/
-├── Dockerfile                    # Multi-stage container with AWS CLI & kubectl
-├── requirements.txt              # Python dependencies
-├── run_tests.py                 # Main test execution script
-├── tests/
-│   └── deploy/
-│       ├── deployment-pass.yaml  # Working deployment manifest
-│       ├── deployment-fail.yaml  # Intentionally broken deployment
-│       ├── service.yaml          # Kubernetes service
-│       └── configmap.yaml        # Application configuration
-├── JenkinsAuth                   # Authentication validation pipeline
-└── Jenkinsfile                   # Main scenario pipeline
-```
-
----
-
-## 🐳 Docker Container Details
-
-### Multi-Stage Build Features
-
-The `Dockerfile` creates a production-ready container with:
-
-✅ **AWS CLI v2** (architecture-aware installation)  
-✅ **kubectl** (latest stable version)  
-✅ **Python 3.11** runtime  
-✅ **Security**: Non-root user execution  
-✅ **Optimization**: Multi-stage build for minimal size  
-
-### Container Capabilities
-
-```bash
-# The container can execute:
-- AWS CLI commands (sts, eks operations)
-- kubectl commands (deployments, services, monitoring)
-- Python test scripts with pytest
-- JSON/YAML processing with jq
-```
-
----
-
-## 🔧 Jenkins Pipeline Execution
-
-### Main Pipeline Stages
-
-The `Jenkinsfile` executes these stages:
-
-1. **Checkout & Preparation**
-   - Verifies scenario directory structure
-   - Validates required files (Dockerfile, tests, manifests)
-   - Creates reports directory
-
-2. **Build Docker Image**
-   - Builds the multi-stage container: `chaos-workshop-scenario-5:${BUILD_NUMBER}`
-   - Verifies successful build
-
-3. **Setup AWS & Kubernetes**
-   - Authenticates with AWS using stored credentials
-   - Generates kubeconfig using containerized AWS CLI
-   - Creates kubeconfig file for kubectl access
-
-4. **Live Kubernetes Monitoring**
-   - Displays cluster overview and node status
-   - Lists existing namespaces, deployments, and pods
-   - Shows services and configmaps
-
-5. **Deploy & Monitor PASS Test** (if `SCENARIO_5_PASS=true`)
-   - Deploys successful application using `deployment-pass.yaml`
-   - Monitors deployment progress in real-time
-   - Validates pod and service status
-
-6. **Deploy & Monitor FAIL Test** (if `SCENARIO_5_FAIL=true`)
-   - Cleans up previous deployments
-   - Deploys broken application using `deployment-fail.yaml`
-   - Demonstrates troubleshooting commands
-   - Shows failure scenarios and error events
-
-7. **Cleanup** (if `CLEANUP_AFTER_TESTS=true`)
-   - Removes test deployments, services, and configmaps
-   - Cleans up cluster resources
-
-### Authentication Test Pipeline
-
-The `JenkinsAuth` pipeline validates your setup:
-
-```groovy
-// Use this to test your AWS and EKS authentication
-pipeline {
-    agent {
-        docker {
-            image 'amazon/aws-cli:latest'
-            args '-u root:root --entrypoint=""'
-        }
-    }
-    
-    stages {
-        stage('AWS Authentication') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'aws-credentials',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    )
-                ]) {
-                    sh '''
-                        # Test AWS connection
-                        aws sts get-caller-identity
-                        
-                        # Check EKS cluster access
-                        aws eks describe-cluster --name ${CLUSTER_NAME} --region ${AWS_REGION}
-                        
-                        # Generate kubeconfig
-                        aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
-                        
-                        # Test kubectl (may fail if aws-auth not configured)
-                        kubectl cluster-info || echo "kubectl access requires aws-auth configuration"
-                    '''
-                }
-            }
-        }
-    }
-}
-```
-
----
-
-## 📊 Deployment Scenarios
-
-### ✅ Pass Scenario (`SCENARIO_5_PASS=true`)
-
-Uses `deployment-pass.yaml` with:
-- ✅ **Valid container image**: `nginx:latest`
-- ✅ **Proper resource limits**: CPU and memory configured
-- ✅ **Health checks**: Readiness and liveness probes
-- ✅ **Correct environment variables**: All required env vars set
-- ✅ **Service integration**: Proper label selectors
-
-**Expected Outcome:**
-- Deployment succeeds within 30 seconds
-- Pods reach `Running` state
-- Service endpoints are accessible
-- No error events in Kubernetes
-
-### ❌ Fail Scenario (`SCENARIO_5_FAIL=false`)
-
-Uses `deployment-fail.yaml` with intentional chaos:
-- ❌ **Invalid image**: `nonexistent-image:broken`
-- ❌ **Resource conflicts**: Insufficient memory limits
-- ❌ **Missing environment variables**: Required env vars undefined
-- ❌ **Broken health checks**: Invalid probe endpoints
-
-**Expected Chaos:**
-- ImagePullBackOff errors
-- Pod crashes and restarts
-- Service endpoints unreachable
-- Warning events in Kubernetes logs
-
-### 🔍 Real-Time Monitoring
-
-Both scenarios include live monitoring:
-
-```bash
-# Monitoring commands executed in pipeline:
-kubectl get deployments -o wide
-kubectl get pods -l app=chaos-workshop-app -o wide
-kubectl describe deployment chaos-workshop-app
-kubectl get events --sort-by=.metadata.creationTimestamp
-kubectl rollout status deployment/chaos-workshop-app
-```
-
----
-
-## 📈 Reports and Artifacts
-
-### Archived Artifacts
-
-After each pipeline run, Jenkins archives:
-
-1. **kubeconfig** - Generated EKS cluster configuration
-2. **environment-summary.json** - Build metadata and configuration
-3. **reports/** directory - All generated reports (if any)
-
-### Accessing Artifacts
-
-1. **In Jenkins UI:**
-   - Go to your build → **Build Artifacts** section
-   - Download individual files or browse directories
-
-2. **Via Jenkins API:**
-```bash
-# Get build artifacts
-curl -X GET "http://jenkins-url/job/scenario-5-eks/${BUILD_NUMBER}/api/json?tree=artifacts[*]"
-
-# Download specific artifact
-curl -X GET "http://jenkins-url/job/scenario-5-eks/${BUILD_NUMBER}/artifact/kubeconfig"
-```
-
-### Live Console Output
-
-The pipeline provides real-time monitoring output including:
-
-- 🔍 **Cluster Overview**: Nodes, namespaces, existing resources
-- 📊 **Deployment Status**: Real-time deployment progress
-- 🐳 **Pod Monitoring**: Pod status, restarts, and events
-- 🌐 **Service Status**: Service endpoints and connectivity
-- 📜 **Event Logs**: Kubernetes events and error messages
-- 🔧 **Troubleshooting Commands**: kubectl commands for debugging
-
----
-
-## 🔍 Troubleshooting Guide
-
-### Common Issues and Solutions
-
-#### 1. AWS Authentication Failed
-
-**Error:** `Unable to locate credentials` or `InvalidUserID.NotFound`
-
-**Solution:**
-```bash
-# Verify Jenkins credentials
-# In Jenkins: Manage Jenkins → Credentials → Check 'aws-credentials'
-
-# Test authentication in JenkinsAuth pipeline
-# Expected output: Your AWS ARN and account ID
-```
-
-#### 2. EKS Cluster Access Denied
-
-**Error:** `error: You must be logged in to the server (Unauthorized)`
-
-**Root Cause:** Your AWS user/role is not in the EKS cluster's `aws-auth` ConfigMap
-
-**Solution:**
-```bash
-# Your pipeline shows your ARN - add it to aws-auth ConfigMap
-# Example ARN: arn:aws:iam::123456789012:user/jenkins-user
-
-# Add to aws-auth ConfigMap in EKS cluster:
-kubectl edit configmap aws-auth -n kube-system
-
-# Add your user to mapUsers section:
-mapUsers: |
-  - userarn: arn:aws:iam::123456789012:user/jenkins-user
-    username: jenkins-user
-    groups:
-      - system:masters
-```
-
-#### 3. Docker Build Fails
-
-**Error:** `docker: command not found` or `permission denied`
-
-**Solution:**
-```bash
-# Ensure Docker is available in Jenkins
-# Check Jenkins Docker configuration
-# Verify Jenkins user has Docker permissions:
-sudo usermod -aG docker jenkins
-sudo systemctl restart jenkins
-```
-
-#### 4. EKS Cluster Not Found
-
-**Error:** `ResourceNotFoundException: No cluster found for name: xyz`
-
-**Solution:**
-```bash
-# Verify cluster name and region parameters
-# Check if cluster exists:
-aws eks list-clusters --region us-east-1
-
-# Update CLUSTER_NAME parameter in Jenkins job
-```
-
-#### 5. kubectl Commands Fail in Container
-
-**Error:** `kubectl: command not found` or `connection refused`
-
-**Solution:**
-```bash
-# The Dockerfile installs kubectl automatically
-# Check if kubeconfig is properly generated
-# Verify AWS credentials are passed to container
-```
-
-#### 6. ImagePullBackOff in Fail Scenario
-
-**Expected Behavior:** This is intentional chaos!
-
-**What It Demonstrates:**
-- How to identify image pull failures
-- Reading pod events and descriptions
-- Understanding Kubernetes failure modes
-- Using kubectl for troubleshooting
-
-#### 7. Pass Scenario Deployment Timeout
-
-**Error:** `deployment "chaos-workshop-app" exceeded its progress deadline`
-
-**Solution:**
-```bash
-# Check node capacity
-kubectl get nodes -o wide
-
-# Check pod events
-kubectl describe pods -l app=chaos-workshop-app
-
-# Verify image availability
-docker pull nginx:latest
-```
-
-### Debug Commands Reference
-
-Use these commands to troubleshoot issues:
-
-```bash
-# AWS connectivity
-aws sts get-caller-identity
-aws eks describe-cluster --name your-cluster
-
-# Kubernetes cluster info
-kubectl cluster-info
-kubectl get nodes -o wide
-
-# Pod debugging
-kubectl get pods -o wide
-kubectl describe pod <pod-name>
-kubectl logs <pod-name>
-
-# Deployment status
-kubectl get deployments
-kubectl describe deployment <deployment-name>
-kubectl rollout status deployment/<deployment-name>
-
-# Service debugging
-kubectl get services
-kubectl describe service <service-name>
-kubectl get endpoints
-
-# Event monitoring
-kubectl get events --sort-by=.metadata.creationTimestamp
-kubectl get events --field-selector type=Warning
-```
-
----
-
-## 🚀 Quick Start Guide
-
-### Step 1: Verify Prerequisites
-```bash
-# Check your EKS cluster exists
-aws eks list-clusters --region us-east-1
-
-# Verify cluster details
-aws eks describe-cluster --name eks-cf-stack-eks-cluster --region us-east-1
-```
-
-### Step 2: Setup Jenkins Job
-
-1. **Create New Pipeline Job**
-   - Jenkins Dashboard → New Item → Pipeline
-
-2. **Configure Parameters** (copy from section above)
-
-3. **Add Pipeline Script**
-   - Choose "Pipeline script from SCM"
-   - Point to your repository
-   - Specify path: `Jenkins/jenkins_scenarios/scenario_05_deploy_eks/Jenkinsfile`
-
-### Step 3: Test Authentication
-
-1. **Create JenkinsAuth Pipeline**
-   - Use the `JenkinsAuth` file as pipeline script
-   - Run to verify AWS and EKS access
-
-2. **Expected Success Output:**
-```bash
-✅ AWS authentication successful!
-👤 Your AWS ARN: arn:aws:iam::123456789012:user/your-user
-✅ kubectl access successful! (or expected auth warning)
-```
-
-### Step 4: Run Full Scenario
-
-1. **Execute Main Pipeline**
-   - Set parameters as needed
-   - Run with both PASS and FAIL tests enabled
-
-2. **Monitor Progress**
-   - Watch console output for real-time monitoring
-   - Observe chaos engineering in action
-
-### Step 5: Review Results
-
-1. **Check Build Artifacts**
-   - Download kubeconfig
-   - Review environment summary
-
-2. **Analyze Console Output**
-   - Study pass vs. fail deployment differences
-   - Learn troubleshooting commands
-
----
-
-## 📚 Additional Resources
-
-### Useful Links
-
-- [AWS EKS Documentation](https://docs.aws.amazon.com/eks/)
-- [Jenkins Kubernetes Plugin](https://plugins.jenkins.io/kubernetes/)
-- [kubectl Cheat Sheet](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
-
-### Sample Commands Reference
-
-```bash
-# AWS EKS Commands
-aws eks list-clusters
-aws eks describe-cluster --name cluster-name
-aws eks update-kubeconfig --name cluster-name
-
-# Kubernetes Commands
-kubectl get deployments
-kubectl get services
-kubectl get pods
-kubectl logs deployment/app
-kubectl describe deployment app
-
-# Docker Commands
-docker build -t app:latest .
-docker run --rm app:latest
-docker images
-docker ps
-```
-
----
-
-## ✅ Success Criteria
-
-You've successfully completed Scenario 5 when:
-
-✅ Jenkins can authenticate to AWS and EKS  
-✅ Docker images build successfully  
-✅ Pass scenario deploys without errors  
-✅ Fail scenario demonstrates proper error handling  
-✅ HTML and JSON reports are generated  
-✅ You can troubleshoot common deployment issues  
-
----
-
-## 🎉 Next Steps
-
-After mastering Scenario 5:
-
-1. **Explore Advanced Features:**
-   - Blue/green deployments
-   - Canary releases
-   - Multi-cluster deployments
-
-2. **Security Enhancements:**
-   - RBAC configuration
-   - Pod security policies
-   - Network policies
-
-3. **Monitoring Integration:**
-   - Prometheus metrics
-   - Grafana dashboards
-   - AlertManager rules
-
----
-
-**🔥 Chaos Agent Status: DEFEATED! Your EKS deployment pipeline is bulletproof! 🔥**
-
----
-
-*Happy deploying! 🚀*
+**Workaround:** The pipeline includes proper wait conditions and retry logic

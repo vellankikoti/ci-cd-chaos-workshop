@@ -11,8 +11,9 @@ pytest-mock>=3.11.1
 requests>=2.31.0
 responses>=0.23.3
 
-# Database testing (simplified - no testcontainers to avoid Docker issues)
+# Database testing
 psycopg2-binary>=2.9.7
+testcontainers>=3.7.0
 
 # Redis testing
 redis>=4.6.0

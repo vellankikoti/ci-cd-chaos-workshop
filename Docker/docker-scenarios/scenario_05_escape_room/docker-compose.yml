@@ -1,10 +1,10 @@
 services:
   escape-room-web:
     build:
-      context: ./webui
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: webui/Dockerfile
     ports:
-      - "5001:5001"
+      - "5000:5000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:

@@ -62,12 +62,21 @@ class TrivyEducationalAnalyzer:
         self.trivy_available = self._check_trivy_availability()
         
     def _check_trivy_availability(self) -> bool:
-        """Check if Trivy is available"""
+        """Check if Trivy is available via Docker"""
+        import subprocess
         try:
-            result = subprocess.run(['trivy', '--version'], 
-                                 capture_output=True, text=True)
-            return result.returncode == 0
-        except FileNotFoundError:
+            # Check Docker is available
+            docker_check = subprocess.run(['docker', 'info'], capture_output=True, text=True)
+            if docker_check.returncode != 0:
+                return False
+            # Check Trivy image is available (pull if not)
+            trivy_check = subprocess.run([
+                'docker', 'run', '--rm',
+                '-v', '/var/run/docker.sock:/var/run/docker.sock',
+                'aquasec/trivy:latest', '--version'
+            ], capture_output=True, text=True)
+            return trivy_check.returncode == 0
+        except Exception:
             return False
     
     async def analyze_image_educational(self, image_name: str) -> EducationalAnalysis:
@@ -123,32 +132,29 @@ class TrivyEducationalAnalyzer:
             self.docker_client.images.pull(image_name)
     
     async def _scan_with_trivy_comprehensive(self, image_name: str) -> List[TrivyVulnerability]:
-        """Run comprehensive Trivy scan with detailed output"""
+        """Run comprehensive Trivy scan with detailed output using Dockerized Trivy"""
+        import asyncio
         try:
-            # Run Trivy with comprehensive scanning
             cmd = [
-                'trivy', 'image', '--format', 'json',
+                'docker', 'run', '--rm',
+                '-v', '/var/run/docker.sock:/var/run/docker.sock',
+                'aquasec/trivy:latest', 'image',
+                '--format', 'json',
                 '--severity', 'CRITICAL,HIGH,MEDIUM,LOW',
                 '--vuln-type', 'os,library',
                 '--security-checks', 'vuln,config,secret',
                 image_name
             ]
-            
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
             stdout, stderr = await process.communicate()
-            
             if process.returncode != 0:
                 raise Exception(f"Trivy scan failed: {stderr.decode()}")
-            
-            # Parse comprehensive results
             scan_results = json.loads(stdout.decode())
             return self._parse_trivy_results_comprehensive(scan_results)
-            
         except Exception as e:
             raise Exception(f"Trivy scan error: {str(e)}")
     

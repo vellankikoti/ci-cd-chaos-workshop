@@ -1,11 +1,27 @@
 from flask import Flask, render_template_string, request
 import redis
 import os
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
 REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-r = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
+
+# Initialize Redis connection with error handling
+try:
+    logger.info(f"Attempting to connect to Redis at {REDIS_HOST}:6379")
+    r = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
+    # Test the connection
+    r.ping()
+    redis_available = True
+    logger.info("✅ Redis connection successful!")
+except (redis.ConnectionError, redis.RedisError) as e:
+    redis_available = False
+    logger.error(f"❌ Redis connection failed: {e}")
 
 TEMPLATE = """
 <!DOCTYPE html>
@@ -100,12 +116,62 @@ TEMPLATE = """
             font-size: 1.1em;
             opacity: 0.7;
         }
+        .error-message {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online {
+            background: #4CAF50;
+        }
+        .status-offline {
+            background: #f44336;
+        }
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏆 Docker Voting App</h1>
         <h2>Which do you prefer?</h2>
+        
+        {% if show_error %}
+        <div class="error-message">
+            <span class="status-indicator status-offline"></span>
+            <strong>Voting Failed!</strong><br>
+            Cannot connect to Redis at {{ redis_host }}:6379<br>
+            This demonstrates what happens when containers can't communicate!
+        </div>
+        {% elif vote_success %}
+        <div class="success-message">
+            <span class="status-indicator status-online"></span>
+            <strong>Vote Recorded Successfully!</strong><br>
+            Your vote was saved to Redis at {{ redis_host }}:6379
+        </div>
+        {% elif redis_available %}
+        <div class="success-message">
+            <span class="status-indicator status-online"></span>
+            <strong>Database Connected</strong> - Redis is available at {{ redis_host }}:6379
+        </div>
+        {% endif %}
+        
         <form method="POST">
             <button class="vote-btn wfh" name="vote" value="wfh">🏡 WFH (Work From Home)</button>
             <button class="vote-btn wfo" name="vote" value="wfo">🏢 WFO (Work From Office)</button>
@@ -132,13 +198,40 @@ TEMPLATE = """
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    wfh = 0
+    wfo = 0
+    show_error = False
+    vote_success = False
+    
     if request.method == "POST":
-        vote = request.form["vote"]
-        r.incr(f"votes:{vote}")
-
-    wfh = r.get("votes:wfh") or 0
-    wfo = r.get("votes:wfo") or 0
-    return render_template_string(TEMPLATE, wfh=wfh, wfo=wfo)
+        logger.info("User attempted to vote")
+        # User tried to vote - check if Redis is available
+        if not redis_available:
+            logger.error("Voting failed - Redis not available")
+            show_error = True
+        else:
+            try:
+                vote = request.form["vote"]
+                logger.info(f"Recording vote for: {vote}")
+                r.incr(f"votes:{vote}")
+                logger.info(f"Vote recorded successfully for: {vote}")
+                vote_success = True
+            except (redis.ConnectionError, redis.RedisError) as e:
+                logger.error(f"Redis error during voting: {e}")
+                show_error = True
+    
+    if redis_available and not show_error:
+        try:
+            logger.info("Reading vote counts from Redis")
+            wfh = r.get("votes:wfh") or 0
+            wfo = r.get("votes:wfo") or 0
+            logger.info(f"Vote counts - WFH: {wfh}, WFO: {wfo}")
+        except (redis.ConnectionError, redis.RedisError) as e:
+            logger.error(f"Redis error when reading votes: {e}")
+            # Redis connection failed when reading votes
+            pass
+    
+    return render_template_string(TEMPLATE, wfh=wfh, wfo=wfo, redis_available=redis_available, redis_host=REDIS_HOST, show_error=show_error, vote_success=vote_success)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000) 

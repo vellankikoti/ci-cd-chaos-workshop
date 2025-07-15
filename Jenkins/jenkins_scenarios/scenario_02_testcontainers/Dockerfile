@@ -16,3 +16,7 @@ RUN python3 --version \
 
 # Set working directory
 WORKDIR /workspace
+
+# Copy scenario files
+COPY requirements.txt .
+COPY tests/ tests/

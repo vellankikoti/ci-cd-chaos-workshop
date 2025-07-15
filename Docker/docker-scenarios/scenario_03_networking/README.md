@@ -1,96 +1,105 @@
 # 🧙‍♂️ Docker Networking Magic — Step-by-Step for Everyone!
 
 ## 🥇 What are we doing?
-We’re going to run a voting website in Docker, break it in fun ways, and then fix it together! You’ll see how computers talk to each other in containers.
+We're going to run a voting website in Docker, break it in fun ways, and then fix it together! You'll see how computers talk to each other in containers.
 
 ---
 
-## 1️⃣ Step 1: Run the App Without a Database (and see it break!)
+## 🚀 Quick Start - Automated Demo
 
-1. **Open your terminal.**
-2. **Go to the scenario folder:**
-   ```bash
-   cd Docker/docker-scenarios/scenario_03_networking
-   ```
-3. **Make all scripts ready to run:**
-   ```bash
-   chmod +x scripts/*.sh
-   ```
-4. **Run the first script:**
-   ```bash
-   ./scripts/run_app_without_db.sh
-   ```
-5. **Open your web browser and go to:**  
-   [http://localhost:5000](http://localhost:5000)
-6. **Try to vote!**
-   - The page will crash when you click a button.  
-   - That’s because the app can’t find its database (Redis)!
-   - You’ll see an error in the terminal.
+**For a complete automated experience, run:**
+```bash
+cd Docker/docker-scenarios/scenario_03_networking
+./demo_simple.sh
+```
 
-**Lesson:** Apps need their databases to work!
+**For an interactive demo with explanations, run:**
+```bash
+cd Docker/docker-scenarios/scenario_03_networking
+./demo_manual.sh
+```
+
+**For non-interactive demo (for CI/CD), run:**
+```bash
+cd Docker/docker-scenarios/scenario_03_networking
+NON_INTERACTIVE=true ./demo_manual.sh
+```
 
 ---
 
-## 2️⃣ Step 2: Add the Database, But… Oops! Wrong Network
+## 📚 Step-by-Step Learning Journey
 
-1. **Stop the old app (the script does this for you).**
-2. **Run the next script:**
-   ```bash
-   ./scripts/run_app_with_db_wrong_network.sh
-   ```
-3. **Go to [http://localhost:5000](http://localhost:5000) again.**
-4. **Try to vote!**
-   - Still broken!  
-   - The app can’t “see” the database, even though it’s running.
+### 1️⃣ Step 1: App Without Database (Expected Failure)
+**What happens:**
+- App starts successfully but has no database
+- When you try to vote, it fails
+- Demonstrates container isolation
 
-**Lesson:** Containers need to be in the same “network” to talk!
+**Learning moment:**
+- Containers are isolated by default
+- Apps need explicit database connections
+- No automatic service discovery
 
----
-
-## 3️⃣ Step 3: Fix the Network — Make the Magic Happen!
-
-1. **Run the magic fix script:**
-   ```bash
-   ./scripts/fix_network.sh
-   ```
-2. **Go to [http://localhost:5000](http://localhost:5000) again.**
-3. **Try to vote!**
-   - It works! Votes go up!
-   - The app and database are now friends in the same network.
-
-**Lesson:** Docker networks are like secret clubhouses. Only members can talk!
+**Key endpoints:**
+- `http://localhost:5000` - App accessible but voting fails
 
 ---
 
-## 4️⃣ Step 4: Share the Fun — Make Your App Public!
+### 2️⃣ Step 2: Database in Wrong Network (Expected Failure)
+**What happens:**
+- Both containers are running
+- App tries to connect to Redis by hostname
+- But they're in different networks
+- Hostname resolution fails
 
-### Option A: Use ngrok (easy way to share)
+**Learning moment:**
+- Docker networks isolate containers
+- Containers in different networks can't see each other
+- Need explicit network configuration
 
-1. **Install ngrok if you don’t have it:**
-   - On Mac: `brew install ngrok/ngrok/ngrok`
-   - On Windows: [Download from ngrok.com](https://ngrok.com/download)
-2. **Run the script:**
-   ```bash
-   ./scripts/expose_ngrok.sh
-   ```
-3. **Copy the public link from the terminal and share it with friends!**
-
-### Option B: Use Cloudflare Tunnel (another way)
-
-1. **Install cloudflared if you don’t have it:**
-   - On Mac: `brew install cloudflared`
-   - On Windows: [Download from developers.cloudflare.com](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/installation/)
-2. **Run the script:**
-   ```bash
-   ./scripts/expose_cloudflared.sh
-   ```
-3. **Copy the public link and share!**
+**Key endpoints:**
+- `http://localhost:5000` - App accessible but voting fails
 
 ---
 
-## 5️⃣ Step 5: Clean Up
+### 3️⃣ Step 3: Fix the Network (Success!)
+**What happens:**
+- Both containers are in the same network
+- Hostname resolution works
+- Voting functionality works perfectly
 
-When you’re done, clean up everything:
+**Learning moment:**
+- Custom networks enable container communication
+- Hostname resolution within same network
+- This is how microservices communicate
+- Real-world pattern used daily
+
+**Key endpoints:**
+- `http://localhost:5000` - Complete working voting system
+
+---
+
+### 🎉 Step 4: Complete Working System (Final Success!)
+**What happens:**
+- Both containers are in the same network (vote-net)
+- App can communicate with Redis (hostname resolution works)
+- Port is published to host (accessible from your computer)
+- This is a production-ready microservices setup!
+
+**Learning moment:**
+- This demonstrates all concepts working together in harmony
+- Production-ready microservices architecture
+- Complete container communication and host access
+
+**Key endpoints:**
+- `http://localhost:5000` - Complete working voting system
+- Network connectivity tests confirm everything works
+
+---
+
+## 🧹 Clean Up
+
+When you're done, clean up everything:
 
 ```bash
 ./scripts/cleanup.sh
@@ -98,16 +107,57 @@ When you’re done, clean up everything:
 
 ---
 
-# 🎉 That’s it! You’re a Docker Networking Wizard!
+# 🎉 That's it! You're a Docker Networking Wizard!
 
 - You saw how apps and databases need to be in the same network.
 - You learned how to fix broken connections.
-- You even shared your app with the world!
+- You learned how port publishing works to access containers from your host.
+- You explored Docker networks and saw how isolation works.
+- You learned to inspect and debug Docker networking like a pro.
+- You built a complete, production-ready microservices system!
 
 ---
 
-## 🧩 Troubleshooting (If you get stuck)
+## 🧩 Troubleshooting & Debugging Tips
 
-- If a script says “permission denied,” run: `chmod +x scripts/*.sh`
-- If you see “port already in use,” run: `./scripts/cleanup.sh` and try again.
-- If you want to start over, always run the cleanup script first. 
+- If a script says "permission denied," run: `chmod +x scripts/*.sh`
+- If you see "port already in use," run: `./scripts/cleanup.sh` and try again.
+- Use `docker ps` to see running containers.
+- Use `docker logs <container>` to view logs and debug errors.
+- Use `docker exec -it <container> /bin/sh` to get a shell inside a container for advanced debugging.
+- Use `docker network inspect <network>` to see which containers are connected and their IPs.
+- If you want to start over, always run the cleanup script first.
+
+## 🎯 Key Takeaways
+
+✅ **Docker Networking Concepts:**
+- Container isolation and communication
+- Network types and configurations
+- Hostname resolution in Docker
+- Port publishing and host access
+- Network inspection and debugging
+
+✅ **Real-World Problem Solving:**
+- Debugging container connectivity issues
+- Understanding error messages
+- Step-by-step troubleshooting
+- Network inspection and analysis
+
+✅ **Microservices Patterns:**
+- Service-to-service communication
+- Database connectivity patterns
+- Network architecture decisions
+- Internal vs external service access
+
+✅ **DevOps Practices:**
+- Container orchestration
+- Service discovery
+- Network security and isolation
+- Debugging and monitoring
+
+✅ **Production-Ready Skills:**
+- Complete microservices architecture
+- Container communication patterns
+- Network security and isolation
+- Debugging container connectivity issues
+- Production-ready container orchestration 

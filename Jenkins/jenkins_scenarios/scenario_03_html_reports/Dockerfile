@@ -42,8 +42,13 @@ RUN pip install -r requirements.txt
 # Create reports directory
 RUN mkdir -p /app/reports
 
-# Copy test files
+# Copy test files and report generator
 COPY tests/ /app/tests/
+COPY report_generator.py /app/
+COPY README.md /app/
+
+# Force cache invalidation
+RUN echo "Build timestamp: $(date)" > /app/build_info.txt
 
 # Set environment variables
 ENV PYTHONPATH=/app

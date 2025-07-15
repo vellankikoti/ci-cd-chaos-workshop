@@ -13,7 +13,7 @@
 - Run Postgres and Redis containers dynamically during tests
 - Simulate pipeline failures and fixes
 - Integrate tests into a Jenkins pipeline
-- Build confidence handling **Chaos Agent’s sabotage!**
+- Build confidence handling **Chaos Agent's sabotage!**
 
 ---
 
@@ -30,17 +30,15 @@
 ## 📂 Project Structure
 
 ```
-
-scenario\_02\_testcontainers/
+scenario_02_testcontainers/
 ├── Dockerfile
 ├── requirements.txt
 └── tests/
-├── test\_postgres\_pass.py
-├── test\_postgres\_fail.py
-├── test\_redis\_pass.py
-└── test\_redis\_fail.py
-
-````
+├── test_postgres_pass.py
+├── test_postgres_fail.py
+├── test_redis_pass.py
+└── test_redis_fail.py
+```
 
 ---
 
@@ -57,10 +55,8 @@ scenario\_02\_testcontainers/
 - Confirms Postgres responds successfully.
 
 See:
-````
-
-tests/test\_postgres\_pass.py
-
+```
+tests/test_postgres_pass.py
 ```
 
 ---
@@ -75,9 +71,7 @@ Chaos Agent strikes…but we predict it!
 
 See:
 ```
-
-tests/test\_postgres\_fail.py
-
+tests/test_postgres_fail.py
 ```
 
 ---
@@ -90,9 +84,7 @@ tests/test\_postgres\_fail.py
 
 See:
 ```
-
-tests/test\_redis\_pass.py
-
+tests/test_redis_pass.py
 ```
 
 ---
@@ -103,14 +95,12 @@ tests/test\_redis\_pass.py
 - Tries connecting on the **wrong port**
 - Expects a connection failure
 
-Chaos Agent’s sabotage detected!
+Chaos Agent's sabotage detected!
 
 See:
 ```
-
-tests/test\_redis\_fail.py
-
-````
+tests/test_redis_fail.py
+```
 
 ---
 
@@ -120,7 +110,7 @@ tests/test\_redis\_fail.py
 
 ```bash
 docker build -t ci-cd-chaos-python:latest .
-````
+```
 
 **2. Run tests:**
 
@@ -153,38 +143,22 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 ### Parameters:
 
 * `TEST_MODE`:
-
   * `pass` → run passing tests
   * `fail` → run chaos-induced failing tests
 
-✅ Jenkins Pipeline Example:
+### Pipeline Stages:
 
-```groovy
-pipeline {
-    agent {
-        docker {
-            image 'ci-cd-chaos-python:latest'
-            args '-u root -v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+1. **Verify Local Workspace:** Shows workspace contents and checks for required files (requirements.txt)
+2. **🔧 Install Python and Dependencies:** Sets up Python environment and installs dependencies
+3. **🧹 Pre-Cleanup:** Removes any leftover testcontainers
+4. **📊 Run Tests:** Executes the selected test mode (pass/fail)
 
-    environment {
-        TESTCONTAINERS_RYUK_DISABLED = 'true'
-    }
+### Pipeline Improvements:
 
-    parameters {
-        choice(
-            name: 'TEST_MODE',
-            choices: ['fail', 'pass'],
-            description: 'Run failing tests or fixed tests?'
-        )
-    }
-
-    stages {
-        ...
-    }
-}
-```
+- **Standardized Environment Variables:** Uses consistent `SCENARIO_PATH`, `IMAGE_NAME`, `BUILD_TAG` variables
+- **Robust Workspace Verification:** Checks for required files and shows workspace contents
+- **Enhanced Error Handling:** Proper success/failure post actions with clear messaging
+- **Consistent Stage Naming:** All stages use emojis and follow the same pattern as other scenarios
 
 ✅ Jenkins automatically:
 
@@ -195,7 +169,7 @@ pipeline {
 
 ---
 
-## 🤯 Chaos Agent’s Tricks
+## 🤯 Chaos Agent's Tricks
 
 Chaos Agent might:
 
@@ -209,7 +183,7 @@ Chaos Agent might:
 
 ## ✅ Victory Condition
 
-✨ You’ve defeated Chaos Agent if:
+✨ You've defeated Chaos Agent if:
 
 * **Passing tests succeed** in Jenkins
 * **Failing tests fail intentionally** in Jenkins
@@ -219,11 +193,7 @@ Chaos Agent might:
 
 ## 👊 Remember:
 
-> **“Chaos is only chaos until it’s tested.”**
+> **"Chaos is only chaos until it's tested."**
 > — CI/CD Chaos Workshop
 
 Go forth and slay Chaos Agent! 🎉
-
-```
-
----

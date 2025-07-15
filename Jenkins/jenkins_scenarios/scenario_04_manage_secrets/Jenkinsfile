@@ -1,82 +1,182 @@
 pipeline {
     agent any
 
-    parameters {
-        booleanParam(name: 'RUN_SCENARIO_4', defaultValue: true, description: 'Run Scenario 4: Manage Secrets')
-        booleanParam(name: 'SCENARIO_4_PASS', defaultValue: true, description: 'Run PASS (clean) or FAIL (leaky) test')
+    environment {
+        SCENARIO_PATH = '/workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_04_manage_secrets'
+        IMAGE_NAME = "chaos-workshop-secret-management"
+        BUILD_TAG = "${BUILD_NUMBER}"
+        REPORTS_DIR = 'reports'
     }
 
-    environment {
-        REPORTS_DIR = "Jenkins/jenkins_scenarios/scenario_04_manage_secrets/reports"
-        SCENARIO_DIR = "Jenkins/jenkins_scenarios/scenario_04_manage_secrets"
-        IMAGE_NAME = "scenario4-secrets"
+    parameters {
+        booleanParam(
+            name: 'RUN_SECRET_SCAN',
+            defaultValue: true,
+            description: '🔍 Run Secret Scanning Tests'
+        )
+        booleanParam(
+            name: 'RUN_COMPLIANCE_CHECK',
+            defaultValue: true,
+            description: '📋 Run Compliance Check Tests'
+        )
+        booleanParam(
+            name: 'RUN_VULNERABILITY_SCAN',
+            defaultValue: true,
+            description: '🛡️ Run Vulnerability Scanning Tests'
+        )
+        booleanParam(
+            name: 'SECRET_SCAN_PASS',
+            defaultValue: true,
+            description: '✅ Secret Scan: Pass (true) or Fail (false)'
+        )
+        booleanParam(
+            name: 'COMPLIANCE_PASS',
+            defaultValue: true,
+            description: '✅ Compliance: Pass (true) or Fail (false)'
+        )
+        booleanParam(
+            name: 'VULNERABILITY_PASS',
+            defaultValue: true,
+            description: '✅ Vulnerability Scan: Pass (true) or Fail (false)'
+        )
     }
 
     stages {
-        stage('Build Docker Image') {
-            when { expression { params.RUN_SCENARIO_4 } }
+        stage('Verify Local Workspace') {
             steps {
-                echo "\uD83D\uDEE0 Building Docker image for Scenario 4..."
-                dir("${env.SCENARIO_DIR}") {
-                    sh 'docker build --pull --no-cache -t $IMAGE_NAME .'
+                sh '''
+                    echo "=== WORKSPACE ==="
+                    pwd
+                    echo "=== Workspace contents ==="
+                    ls -la
+                    echo "=== Checking scenario directory ==="
+                    ls -la ${SCENARIO_PATH}
+
+                    if [ ! -f ${SCENARIO_PATH}/Dockerfile ]; then
+                        echo "ERROR: Dockerfile missing!"
+                        exit 1
+                    else
+                        echo "✅ Dockerfile found!"
+                    fi
+                '''
+            }
+        }
+
+        stage('🔧 Build Docker Image') {
+            steps {
+                sh """
+                    echo "🛠️ Building Docker image: ${IMAGE_NAME}"
+                    docker build \\
+                        -t ${IMAGE_NAME}:${BUILD_TAG} \\
+                        -f ${SCENARIO_PATH}/Dockerfile \\
+                        ${SCENARIO_PATH}
+                """
+            }
+        }
+
+        stage('🧹 Pre-Cleanup') {
+            steps {
+                sh '''
+                    echo "🔪 Pre-cleanup: Killing leftover containers..."
+                    docker ps -q --filter name=chaos-workshop | xargs -r docker rm -f || true
+                '''
+            }
+        }
+
+        stage('🔍 Run Security Tests') {
+            parallel {
+                stage('🔍 Secret Scanning') {
+                    when {
+                        expression { params.RUN_SECRET_SCAN }
+                    }
+                    steps {
+                        script {
+                            def testMode = params.SECRET_SCAN_PASS ? 'pass' : 'fail'
+                            echo "Running Secret Scanning in ${testMode} mode"
+                            
+                            docker.image("${IMAGE_NAME}:${BUILD_TAG}").inside('-u root -v /var/run/docker.sock:/var/run/docker.sock -w ${SCENARIO_PATH}') {
+                                sh """
+                                    echo "=== Secret Scanning Test ==="
+                                    python tests/test_secret_scanning.py --mode ${testMode}
+                                """
+                            }
+                        }
+                    }
+                }
+
+                stage('📋 Compliance Check') {
+                    when {
+                        expression { params.RUN_COMPLIANCE_CHECK }
+                    }
+                    steps {
+                        script {
+                            def testMode = params.COMPLIANCE_PASS ? 'pass' : 'fail'
+                            echo "Running Compliance Check in ${testMode} mode"
+                            
+                            docker.image("${IMAGE_NAME}:${BUILD_TAG}").inside('-u root -v /var/run/docker.sock:/var/run/docker.sock -w ${SCENARIO_PATH}') {
+                                sh """
+                                    echo "=== Compliance Check Test ==="
+                                    python tests/test_compliance_check.py --mode ${testMode}
+                                """
+                            }
+                        }
+                    }
+                }
+
+                stage('🛡️ Vulnerability Scan') {
+                    when {
+                        expression { params.RUN_VULNERABILITY_SCAN }
+                    }
+                    steps {
+                        script {
+                            def testMode = params.VULNERABILITY_PASS ? 'pass' : 'fail'
+                            echo "Running Vulnerability Scan in ${testMode} mode"
+                            
+                            docker.image("${IMAGE_NAME}:${BUILD_TAG}").inside('-u root -v /var/run/docker.sock:/var/run/docker.sock -w ${SCENARIO_PATH}') {
+                                sh """
+                                    echo "=== Vulnerability Scan Test ==="
+                                    python tests/test_vulnerability_scan.py --mode ${testMode}
+                                """
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        stage('Run Secret Scan') {
-            when { expression { params.RUN_SCENARIO_4 } }
+        stage('📋 Generate Security Report') {
             steps {
-                echo "\uD83D\uDD0E Running Secret Scan in Docker..."
-                dir("${env.SCENARIO_DIR}") {
-                    sh '''
-                        set -e
-                        mkdir -p reports
-                        echo "\n\uD83D\uDCC2 Reports directory: $(pwd)/reports\n"
-                        docker run --rm \
-                            -e SCENARIO_4_PASS=${SCENARIO_4_PASS} \
-                            -v $(pwd)/reports:/reports \
-                            $IMAGE_NAME
-                    '''
+                script {
+                    docker.image("${IMAGE_NAME}:${BUILD_TAG}").inside('-u root -v /var/run/docker.sock:/var/run/docker.sock -w ${SCENARIO_PATH}') {
+                        sh """
+                            echo "📋 Generating Security Report..."
+                            python tests/generate_security_report.py
+                        """
+                    }
                 }
             }
         }
 
-        stage('Archive Reports') {
-            when { expression { params.RUN_SCENARIO_4 } }
+        stage('📦 Archive Reports') {
             steps {
-                echo "\uD83D\uDCC1 Archiving reports..."
-                archiveArtifacts artifacts: 'reports/*.html,reports/*.json,reports/*.csv', allowEmptyArchive: true
+                sh """
+                    echo "📦 Archiving reports..."
+                    mkdir -p ${REPORTS_DIR}
+                    cp -r /workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_03_html_reports/reports/* ${REPORTS_DIR}/ || true
+                """
             }
         }
     }
 
     post {
-    always {
-        script {
-            echo "=== Scenario 4: Manage Secrets - Pipeline Complete ==="
-
-            // Show contents of the reports folder
-            sh 'echo "Listing reports directory:"'
-            sh 'ls -l reports || echo "No reports found."'
-
-            echo "Reports directory: reports"
-            echo "See Jenkins artifacts for HTML, JSON, and CSV reports."
+        always {
+            echo "✨ Chaos Agent defeated… or plotting his next move!"
         }
-
-        // FIXED archiveArtifacts path
-        archiveArtifacts artifacts: 'reports/*.html,reports/*.json,reports/*.csv', allowEmptyArchive: true
-
-        // Clean up Docker image
-        sh 'docker rmi $IMAGE_NAME || true'
+        success {
+            echo "🎉 All security tests completed successfully!"
+        }
+        failure {
+            echo "💥 Some security tests failed - Chaos Agent strikes again!"
+        }
     }
-
-    failure {
-        echo "❌ Scenario 4 failed! Check the HTML/JSON reports for details."
-    }
-
-    success {
-        echo "✅ Scenario 4 passed! No secrets found (if PASS mode)."
-    }
-}
-
 }

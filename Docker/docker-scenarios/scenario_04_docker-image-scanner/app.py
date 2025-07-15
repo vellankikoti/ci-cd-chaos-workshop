@@ -66,7 +66,49 @@ async def analyze_image(request: AnalysisRequest):
     """Analyze Docker image with real Trivy data and educational insights"""
     analysis_id = str(uuid.uuid4())
     
+    # Enhanced validation checks with educational messages
+    if not trivy_analyzer.trivy_available:
+        return {
+            "error": "❌ Trivy not found. This tool requires Trivy for real vulnerability scanning.\n\n"
+                     "📦 Please install Trivy first:\n"
+                     "   macOS: brew install trivy\n"
+                     "   Linux: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh\n"
+                     "   Windows: scoop install trivy\n\n"
+                     "🔍 After installation, verify with: trivy --version",
+            "analysis_id": analysis_id,
+            "status": "failed",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    # Check Docker availability
     try:
+        docker_utils.docker_client.ping()
+    except Exception as e:
+        return {
+            "error": "❌ Docker connection failed. Please ensure Docker is running.\n\n"
+                     "🔧 Troubleshooting:\n"
+                     "   1. Start Docker Desktop\n"
+                     "   2. Run: docker ps\n"
+                     "   3. Ensure Docker socket is accessible",
+            "analysis_id": analysis_id,
+            "status": "failed",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    try:
+        # Validate image name format
+        if not request.image_name or ':' not in request.image_name:
+            return {
+                "error": "❌ Invalid image name format. Please use format: image:tag\n\n"
+                         "📝 Examples:\n"
+                         "   • nginx:alpine\n"
+                         "   • python:3.9-slim\n"
+                         "   • node:16-alpine",
+                "analysis_id": analysis_id,
+                "status": "failed",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
         # Perform comprehensive educational analysis
         analysis_result = await trivy_analyzer.analyze_image_educational(request.image_name)
         
@@ -137,127 +179,57 @@ async def analyze_image(request: AnalysisRequest):
         
         return response_data
         
-    except Exception as e:
+    except docker.errors.ImageNotFound:
         return {
-            "error": str(e), 
+            "error": f"❌ Image '{request.image_name}' not found.\n\n"
+                     "🔍 This image may not exist or may not be available.\n"
+                     "💡 Try these examples:\n"
+                     "   • nginx:alpine\n"
+                     "   • python:3.9-slim\n"
+                     "   • alpine:3.18",
             "analysis_id": analysis_id,
             "status": "failed",
             "timestamp": datetime.utcnow().isoformat()
         }
+    except Exception as e:
+        error_msg = str(e)
+        if "timeout" in error_msg.lower():
+            return {
+                "error": "⏱️ Analysis timed out. This can happen with large images.\n\n"
+                         "💡 Try these solutions:\n"
+                         "   • Use smaller images (alpine-based)\n"
+                         "   • Check your internet connection\n"
+                         "   • Try again in a few minutes",
+                "analysis_id": analysis_id,
+                "status": "failed",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        elif "permission" in error_msg.lower():
+            return {
+                "error": "🔒 Permission denied. Docker socket access required.\n\n"
+                         "💡 Ensure the container has access to Docker socket:\n"
+                         "   -v /var/run/docker.sock:/var/run/docker.sock",
+                "analysis_id": analysis_id,
+                "status": "failed",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        else:
+            return {
+                "error": f"❌ Analysis failed: {error_msg}\n\n"
+                         "🔧 Please try:\n"
+                         "   • A different image\n"
+                         "   • Check your internet connection\n"
+                         "   • Restart the analyzer",
+                "analysis_id": analysis_id,
+                "status": "failed",
+                "timestamp": datetime.utcnow().isoformat()
+            }
 
 @app.post("/api/v1/analyze/dockerfile")
 async def analyze_dockerfile(file: UploadFile = File(...)):
     """Analyze any uploaded file as a Dockerfile (robust, filename does not matter)"""
-    analysis_id = str(uuid.uuid4())
-    image_name = f"analyzer-{analysis_id}"
-    dockerfile_path = f"uploads/{analysis_id}_Dockerfile"
-    try:
-        if not file.filename:
-            return {"error": "Please upload a file to be used as a Dockerfile.", "analysis_id": analysis_id}
-        # Save uploaded file as Dockerfile
-        with open(dockerfile_path, "wb") as buffer:
-            content = await file.read()
-            buffer.write(content)
-        # Build image from Dockerfile
-        build_success, build_error = await docker_utils.build_image(dockerfile_path, image_name)
-        if not build_success:
-            return {
-                "error": f"Failed to build image from Dockerfile. Details: {build_error}",
-                "analysis_id": analysis_id,
-                "status": "failed"
-            }
-        # Ensure image exists
-        image_exists = await docker_utils.image_exists(image_name)
-        if not image_exists:
-            return {
-                "error": f"Image '{image_name}' not found after build. Build may have failed.",
-                "analysis_id": analysis_id,
-                "status": "failed"
-            }
-        # Analyze the built image
-        try:
-            analysis_result = await trivy_analyzer.analyze_image_educational(image_name)
-        except Exception as e:
-            await docker_utils.remove_image(image_name)
-            return {
-                "error": f"Trivy scan failed: {str(e)}",
-                "analysis_id": analysis_id,
-                "status": "failed"
-            }
-        # If no vulnerabilities and score is 100, warn user
-        if analysis_result.total_vulnerabilities == 0 or analysis_result.security_score == 100.0:
-            await docker_utils.remove_image(image_name)
-            return {
-                "error": "No vulnerabilities found or scan returned empty. This may indicate a scan or build issue. Please check your Dockerfile and try again.",
-                "analysis_id": analysis_id,
-                "status": "failed"
-            }
-        # Parse Dockerfile for additional insights
-        dockerfile_insights = await _analyze_dockerfile_content(dockerfile_path)
-        # Clean up image after analysis
-        await docker_utils.remove_image(image_name)
-        # Combine results
-        response_data = {
-            "analysis_id": analysis_id,
-            "image_name": image_name,
-            "status": "completed",
-            "timestamp": analysis_result.scan_timestamp.isoformat(),
-            # Security Analysis (Real Trivy Data)
-            "security_analysis": {
-                "total_vulnerabilities": analysis_result.total_vulnerabilities,
-                "critical_count": len(analysis_result.critical_vulnerabilities),
-                "high_count": len(analysis_result.high_vulnerabilities),
-                "medium_count": len(analysis_result.medium_vulnerabilities),
-                "low_count": len(analysis_result.low_vulnerabilities),
-                "security_score": analysis_result.security_score,
-                "vulnerabilities": [
-                    {
-                        "cve_id": v.cve_id,
-                        "severity": v.severity,
-                        "package_name": v.package_name,
-                        "installed_version": v.installed_version,
-                        "fixed_version": v.fixed_version,
-                        "description": v.description,
-                        "cvss_score": v.cvss_score
-                    }
-                    for v in (analysis_result.critical_vulnerabilities + 
-                             analysis_result.high_vulnerabilities + 
-                             analysis_result.medium_vulnerabilities + 
-                             analysis_result.low_vulnerabilities)
-                ],
-                "recommendations": analysis_result.actionable_recommendations
-            },
-            # Dockerfile Analysis
-            "dockerfile_analysis": dockerfile_insights,
-            # Educational Insights
-            "learning_insights": analysis_result.learning_insights + dockerfile_insights.get('insights', []),
-            # Best Practices
-            "best_practices": [
-                {
-                    "category": bp.category,
-                    "title": bp.title,
-                    "description": bp.description,
-                    "impact": bp.impact,
-                    "recommendation": bp.recommendation,
-                    "example": bp.example,
-                    "priority": bp.priority
-                }
-                for bp in analysis_result.best_practices
-            ],
-            # Industry Comparison
-            "industry_benchmark": analysis_result.industry_comparison,
-            # Enterprise Score
-            "enterprise_score": analysis_result.security_score
-        }
-        return response_data
-    except Exception as e:
-        await docker_utils.remove_image(image_name)
-        return {
-            "error": str(e),
-            "analysis_id": analysis_id,
-            "status": "failed",
-            "timestamp": datetime.utcnow().isoformat()
-        }
+    # Endpoint removed for robustness. Dockerfile upload analysis is no longer supported.
+    return {"error": "Dockerfile upload analysis has been removed for robustness. Please use image analysis features.", "status": "removed"}
 
 async def _get_docker_analysis_data(image_name: str) -> dict:
     """Get real Docker analysis data"""

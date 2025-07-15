@@ -44,6 +44,8 @@ scenario_05_escape_room/
 │       └── Dockerfile
 ├── docker-compose.yml
 ├── cleanup.sh
+├── reset_game.sh
+├── demo_workshop.sh
 └── scenario_05_escape_room.md
 ```
 
@@ -56,49 +58,37 @@ scenario_05_escape_room/
 cd Docker/docker-scenarios/scenario_05_escape_room
 ```
 
-### **B. Start the Web UI**
+### **B. Start the Web UI (Auto-Setup!)**
 
-**Option 1: Docker Compose (Recommended)**
+**Recommended: Docker Compose**
 ```bash
 docker-compose up --build
 # Open http://localhost:5000
 ```
 
-**Option 2: Python (Local)**
-```bash
-cd webui
-pip install -r requirements.txt
-python app.py
-# Open http://localhost:5000
-```
+**No need to run puzzle setup scripts manually!**
+All puzzles are auto-initialized when the app starts.
 
-**Option 3: Docker Only**
-```bash
-docker build -t escape-room ./webui
-docker run -p 5000:5000 -v /var/run/docker.sock:/var/run/docker.sock escape-room
-# Open http://localhost:5000
-```
+**Helper scripts:**
+- `./reset_game.sh` — Reset all puzzles and containers for a fresh start
+- `./demo_workshop.sh` — 10-minute workshop demo guide
 
 ---
 
 ## 4. How to Play
 
 1. **Open the web interface** at [http://localhost:5000](http://localhost:5000)
-2. **Read Dr. NullPointer's clues** for each puzzle.
-3. **Run the setup script for each puzzle** (see below).
-4. **Use your terminal** to run real Docker commands to solve the puzzle.
-5. **Submit your answer** in the web UI.
-6. **Progress through all 5 puzzles to escape!
+2. **Read Dr. Bug's clues** for each puzzle.
+3. **Use your terminal** to run real Docker commands to solve the puzzle.
+4. **Submit your answer** in the web UI.
+5. **Progress through all 5 puzzles to escape!
+6. **Use the 'Start Over' button at any time for a fresh game.**
 
 ---
 
-## 5. Puzzle-by-Puzzle Setup & Solution
+## 5. Puzzle-by-Puzzle Solutions
 
 ### ⭐ Puzzle 1: The Secret Vault (Volumes)
-**Setup:**
-```bash
-./puzzles/puzzle1_volume.sh
-```
 **Solve:**
 ```bash
 docker run --rm -v vault-volume:/mnt busybox cat /mnt/secret/code.txt
@@ -108,10 +98,6 @@ docker run --rm -v vault-volume:/mnt busybox cat /mnt/secret/code.txt
 ---
 
 ### ⭐ Puzzle 2: The Network Detective
-**Setup:**
-```bash
-./puzzles/puzzle2_network.sh
-```
 **Solve:**
 ```bash
 docker inspect network-spy | grep IPAddress
@@ -121,10 +107,6 @@ docker inspect network-spy | grep IPAddress
 ---
 
 ### ⭐ Puzzle 3: The Memory Detective
-**Setup:**
-```bash
-./puzzles/puzzle3_memory.sh
-```
 **Solve:**
 ```bash
 docker inspect memory-victim | grep -i memory
@@ -134,23 +116,15 @@ docker inspect memory-victim | grep -i memory
 ---
 
 ### ⭐ Puzzle 4: The Secret Hunter
-**Setup:**
-```bash
-./puzzles/puzzle4_inspect.sh
-```
 **Solve:**
 ```bash
 docker inspect secret-keeper | grep -A 10 -B 5 SECRET_CODE
-# Find the value of SECRET_CODE and submit in the web UI
+# Find the value of SECRET_CODE (docker_master_2025) and submit in the web UI
 ```
 
 ---
 
 ### ⭐ Puzzle 5: The Image Sleuth (Multi-Stage Build)
-**Setup:**
-```bash
-./puzzles/puzzle5_multistage/setup.sh
-```
 **Solve:**
 ```bash
 docker images suspicious-image
@@ -179,6 +153,8 @@ docker system prune -f
   Change port in `docker-compose.yml` or `app.py`
 - **Puzzle setup fails:**  
   Ensure Docker is running, run cleanup, and try again.
+- **Reset everything:**  
+  `./reset_game.sh`
 
 ---
 
@@ -193,12 +169,10 @@ docker system prune -f
 
 ---
 
-You and your workshop friends have been **kidnapped by Dr. NullPointer, the evil villain of the cloud.**  
-
+You and your workshop friends have been **kidnapped by Dr. Bug, the chaos engineer of the cloud.**  
 He’s locked you inside the **Docker Vault**, a high-security digital prison guarded by containers.
 
 To escape, you must:
-
 - Solve five Docker puzzles
 - Discover hidden secrets
 - Hack your way through broken networks
@@ -214,18 +188,17 @@ Fail…and you’ll be trapped running endless `hello-world` containers for eter
 ---
 
 ## ✅ How It Works
-
 - You’ll see a clue in the web browser.
 - You’ll have a live shell to run **real Docker commands.**
 - Enter your answer in the browser.
 - If correct → next door unlocks.
-- If wrong → Dr. NullPointer taunts you mercilessly.
+- If wrong → Dr. Bug taunts you mercilessly.
 
 ---
 
 ## ✅ Game Mechanics
 
-✅ **Time challenge:** Solve all puzzles before Dr. NullPointer triggers a CI/CD pipeline apocalypse.  
+✅ **Time challenge:** Solve all puzzles before Dr. Bug triggers a CI/CD pipeline apocalypse.  
 ✅ **Score system:**
 - +10 points for each puzzle
 - -3 points for failed attempts
@@ -246,7 +219,7 @@ Fail…and you’ll be trapped running endless `hello-world` containers for eter
 
 ---
 
-### Dr. NullPointer’s Message:
+### Dr. Bug’s Message:
 
 > “Mwahaha! I’ve hidden the **Escape Key** inside a secret volume.  
 > It’s buried in:
@@ -273,7 +246,7 @@ docker run --rm -v vault-volume:/mnt busybox cat /mnt/secret/code.txt
 
 ---
 
-### Dr. NullPointer Taunts:
+### Dr. Bug Taunts:
 
 * “That’s adorable… you think you can just `docker run` your way out?”
 * “Even my cat knows how to mount a volume.”
@@ -292,7 +265,7 @@ docker run --rm -v vault-volume:/mnt busybox cat /mnt/secret/code.txt
 
 ---
 
-### Dr. NullPointer’s Message:
+### Dr. Bug’s Message:
 
 > “Your precious app can’t talk to its database!
 > I’ve trapped them in **different Docker networks.**
@@ -325,7 +298,7 @@ docker run --rm --network networkA redis redis-cli -h redis-server ping
 
 ---
 
-### Dr. NullPointer Taunts:
+### Dr. Bug Taunts:
 
 * “Packets? Lost. Like your hopes.”
 * “Network errors are my love language.”
@@ -345,7 +318,7 @@ docker run --rm --network networkA redis redis-cli -h redis-server ping
 
 ---
 
-### Dr. NullPointer’s Message:
+### Dr. Bug’s Message:
 
 > “Oops… your container **ran out of memory.**
 > It keeps crashing with:
@@ -376,7 +349,7 @@ docker logs <container_id>
 
 ---
 
-### Dr. NullPointer Taunts:
+### Dr. Bug Taunts:
 
 * “Memory? You humans are always running out of it.”
 * “OOM Killer is my best friend.”
@@ -396,7 +369,7 @@ docker logs <container_id>
 
 ---
 
-### Dr. NullPointer’s Message:
+### Dr. Bug’s Message:
 
 > “I’ve hidden my evil flag as an **environment variable** inside a running container:
 >
@@ -426,7 +399,7 @@ SECRET_FLAG=escape_docker
 
 ---
 
-### Dr. NullPointer Taunts:
+### Dr. Bug Taunts:
 
 * “Nice try. I’ve hidden secrets deeper than your debugging skills.”
 * “Inspect me all you want. You’ll never escape.”
@@ -446,7 +419,7 @@ SECRET_FLAG=escape_docker
 
 ---
 
-### Dr. NullPointer’s Message:
+### Dr. Bug’s Message:
 
 > “Final door awaits!
 > Your challenge:
@@ -489,7 +462,7 @@ docker images escape-final
 
 ---
 
-### Dr. NullPointer Taunts:
+### Dr. Bug Taunts:
 
 * “A fat image is a slow image. Like you.”
 * “Multi-stage builds? Cute. Let’s see if you can actually do it.”

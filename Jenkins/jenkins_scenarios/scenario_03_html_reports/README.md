@@ -29,9 +29,9 @@ Place these files in your `Jenkins/jenkins_scenarios/scenario_03_html_reports/` 
 ```
 Jenkins/jenkins_scenarios/scenario_03_html_reports/
 ├── Dockerfile                    # ✅ Updated with report generator
-├── requirements.txt              # ✅ Existing file
+├── requirements.txt              # ✅ Updated with testcontainers dependency
 ├── report_generator.py           # 🆕 NEW - Enterprise report generator  
-├── Jenkinsfile                   # 🆕 NEW - Enhanced pipeline
+├── Jenkinsfile                   # 🆕 NEW - Enhanced standardized pipeline
 ├── tests/                        # ✅ Existing test files
 │   ├── test_config_validation_pass.py
 │   ├── test_config_validation_fail.py
@@ -46,23 +46,36 @@ Jenkins/jenkins_scenarios/scenario_03_html_reports/
 └── README.md       # 🆕 This guide
 ```
 
-### **Step 2: Update Your Jenkins Pipeline**
+### **Step 2: Enhanced Pipeline Features**
 
-Replace your existing Jenkinsfile with the enhanced version that includes:
-- ✅ All existing test execution functionality
+The updated Jenkinsfile includes:
+- ✅ **Standardized Environment Variables** - Uses consistent `SCENARIO_PATH`, `IMAGE_NAME`, `BUILD_TAG`
+- ✅ **Robust Workspace Verification** - Checks for required files and shows workspace contents
+- ✅ **Enhanced Error Handling** - Proper success/failure post actions with clear messaging
+- ✅ **Consistent Stage Naming** - All stages use emojis and follow the same pattern as other scenarios
 - 🆕 **Enterprise Report Generation** stage
 - 🎨 **Beautiful console output** with enhanced messaging
 - 📊 **Automatic report archiving** with proper instructions
+- 🔧 **File Copying Logic** - Ensures `report_generator.py` is always available
 
-### **Step 3: Commit and Push**
+### **Step 3: Pipeline Stages**
+
+1. **Verify Local Workspace:** Shows workspace contents and checks for required files (Dockerfile)
+2. **🔧 Build Docker Image:** Builds the test environment with all dependencies
+3. **🧹 Pre-Cleanup:** Removes any leftover containers
+4. **📊 Run Test Scenarios:** Executes all test suites with JSON report generation
+5. **📋 Generate HTML Reports:** Creates beautiful enterprise-grade reports
+6. **📦 Archive Reports:** Makes reports available as Jenkins artifacts
+
+### **Step 4: Commit and Push**
 
 ```bash
 git add .
-git commit -m "🎨 Add enterprise-grade report visualization"
+git commit -m "🎨 Add enterprise-grade report visualization with standardized pipeline"
 git push origin phase-3-jenkins
 ```
 
-### **Step 4: Run Your Enhanced Pipeline**
+### **Step 5: Run Your Enhanced Pipeline**
 
 1. Go to Jenkins → Your Pipeline
 2. Click **"Build with Parameters"**

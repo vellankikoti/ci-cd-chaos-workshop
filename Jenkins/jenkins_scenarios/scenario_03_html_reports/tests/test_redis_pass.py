@@ -459,7 +459,6 @@ class TestRedisPass:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-Temp key should exist initially"
             
             time.sleep(1.5)  # Wait for expiration
             assert client.exists("temp_key") == 0, "Temp key should expire after 1 second"

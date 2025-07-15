@@ -40,12 +40,21 @@ class SecurityScanner:
         self.trivy_available = self._check_trivy_availability()
     
     def _check_trivy_availability(self) -> bool:
-        """Check if Trivy is available"""
+        """Check if Trivy is available via Docker"""
+        import subprocess
         try:
-            result = subprocess.run(['trivy', '--version'], 
-                                 capture_output=True, text=True)
-            return result.returncode == 0
-        except FileNotFoundError:
+            # Check Docker is available
+            docker_check = subprocess.run(['docker', 'info'], capture_output=True, text=True)
+            if docker_check.returncode != 0:
+                return False
+            # Check Trivy image is available (pull if not)
+            trivy_check = subprocess.run([
+                'docker', 'run', '--rm',
+                '-v', '/var/run/docker.sock:/var/run/docker.sock',
+                'aquasec/trivy:latest', '--version'
+            ], capture_output=True, text=True)
+            return trivy_check.returncode == 0
+        except Exception:
             return False
     
     async def scan_image_security(self, image_name: str) -> SecurityAnalysis:
@@ -61,32 +70,28 @@ class SecurityScanner:
             return await self._create_error_analysis(str(e))
     
     async def _scan_with_trivy(self, image_name: str) -> SecurityAnalysis:
-        """Scan using Trivy for real vulnerability data"""
+        """Scan using Trivy for real vulnerability data via Dockerized Trivy"""
+        import asyncio
         try:
-            # Run Trivy scan
             cmd = [
-                'trivy', 'image', '--format', 'json',
+                'docker', 'run', '--rm',
+                '-v', '/var/run/docker.sock:/var/run/docker.sock',
+                'aquasec/trivy:latest', 'image',
+                '--format', 'json',
                 '--severity', 'CRITICAL,HIGH,MEDIUM,LOW',
                 image_name
             ]
-            
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
             stdout, stderr = await process.communicate()
-            
             if process.returncode != 0:
                 return await self._create_error_analysis(f"Trivy scan failed: {stderr.decode()}")
-            
-            # Parse Trivy results
             scan_results = json.loads(stdout.decode())
             vulnerabilities = self._parse_trivy_results(scan_results)
-            
             return await self._create_security_analysis(vulnerabilities)
-            
         except Exception as e:
             return await self._create_error_analysis(f"Trivy scan error: {str(e)}")
     

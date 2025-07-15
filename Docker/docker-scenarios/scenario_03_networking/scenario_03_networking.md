@@ -1,488 +1,500 @@
-# 🚀 Scenario 03 — Docker Networking Magic
+# 🚀 Docker Scenario 03 — Networking Magic: Lifetime Experience
 
-## 🎯 Scenario Goal
+**Goal:**  
+- Experience real-world Docker networking problems and their solutions
+- See how container communication works (and fails!) in practice
+- Learn to debug, fix, and understand containerized apps
+- Create a memorable "AHA!" moment about networks and container isolation
 
-Demonstrate **real-world Docker networking problems** and how to fix them by:
+This scenario demonstrates:
 
-✅ Running a Python Flask **Voting App** (WFO vs WFH)  
-✅ Letting workshop attendees vote live via a public URL (ngrok or Cloudflare Tunnel)  
-✅ Simulating networking failures:
-- Missing database
-- Containers in separate networks
-✅ Fixing networking issues → **everything magically works!**
+> **Docker Networking Magic: From Isolation to Communication**
 
-This scenario creates an unforgettable **AHA moment** for learners.
+---
+
+# ✅ Prerequisites
+
+- Docker installed
+- Basic understanding of containers
+- curl (for testing endpoints)
+- ~1GB RAM for containers
+
+---
+
+# ✅ Scenario Overview
+
+This scenario creates an unforgettable **AHA moment** by demonstrating:
+
+1. **App Without Database** - Shows what happens when containers can't communicate
+2. **Wrong Network** - Demonstrates Docker network isolation
+3. **Network Fix** - Reveals the magic of proper container networking
+4. **Internal Communication** - Shows container-to-container communication without host access
+5. **Network Inspection** - Learn to debug and understand Docker networks
+6. **Network Isolation** - Demonstrate security boundaries between networks
+7. **Port Publishing** - Understand how to access containers from the host
+
+Each step includes:
+- Real failure scenarios with actual error messages
+- Educational explanations of what went wrong
+- Step-by-step fixes that work
+- Interactive testing and validation
+- Comprehensive troubleshooting and debugging
 
 ---
 
 # ✅ Directory Structure
 
 ```
-
-scenario\_03\_networking/
+scenario_03_networking/
 │
 ├── app/
-│     ├── app.py
-│     ├── requirements.txt
-│     └── Dockerfile
+│   ├── app.py              # Flask voting application
+│   ├── requirements.txt    # Python dependencies
+│   └── Dockerfile         # Container definition
 ├── scripts/
-│     ├── run\_app\_without\_db.sh
-│     ├── run\_app\_with\_db\_wrong\_network.sh
-│     ├── fix\_network.sh
-│     ├── expose\_ngrok.sh
-│     ├── expose\_cloudflared.sh
-│     └── cleanup.sh
-└── scenario\_03\_networking.md
-
-````
-
----
-
-# ✅ How The Voting App Works
-
-## Flask Voting App
-
-Two buttons:
-
-- ✅ Vote **WFH** (Work From Home)
-- ✅ Vote **WFO** (Work From Office)
-
-Votes stored in Redis under keys:
-
-- `votes:wfh`
-- `votes:wfo`
-
-✅ Total votes shown live on web page.
-
----
-
-## app/app.py
-
-```python
-from flask import Flask, render_template_string, request
-import redis
-import os
-
-app = Flask(__name__)
-
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-r = redis.Redis(host=REDIS_HOST, port=6379, decode_responses=True)
-
-TEMPLATE = """
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-    <meta charset='UTF-8'>
-    <title>🏆 Docker Voting App</title>
-    <style>
-        body {
-            background: linear-gradient(135deg, #f8ffae 0%, #43c6ac 100%);
-            font-family: 'Segoe UI', 'Arial', sans-serif;
-            text-align: center;
-            padding: 0;
-            margin: 0;
-            min-height: 100vh;
-        }
-        .container {
-            margin-top: 60px;
-            background: rgba(255,255,255,0.9);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.2);
-            display: inline-block;
-            padding: 40px 60px 30px 60px;
-        }
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 0.2em;
-            color: #2d3a4b;
-        }
-        h2 {
-            color: #43c6ac;
-            margin-bottom: 1.5em;
-        }
-        .vote-btn {
-            font-size: 1.5em;
-            padding: 20px 40px;
-            margin: 20px 30px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.2s;
-            box-shadow: 0 2px 8px rgba(67,198,172,0.15);
-        }
-        .vote-btn.wfh {
-            background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
-            color: #2d3a4b;
-        }
-        .vote-btn.wfh:hover {
-            background: linear-gradient(90deg, #ffd200 0%, #f7971e 100%);
-            transform: scale(1.07);
-        }
-        .vote-btn.wfo {
-            background: linear-gradient(90deg, #43c6ac 0%, #191654 100%);
-            color: #fff;
-        }
-        .vote-btn.wfo:hover {
-            background: linear-gradient(90deg, #191654 0%, #43c6ac 100%);
-            transform: scale(1.07);
-        }
-        .votes {
-            margin-top: 30px;
-            display: flex;
-            justify-content: center;
-            gap: 60px;
-        }
-        .vote-box {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(67,198,172,0.10);
-            padding: 30px 40px;
-            min-width: 160px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .vote-label {
-            font-size: 1.2em;
-            margin-bottom: 10px;
-        }
-        .vote-count {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #43c6ac;
-        }
-        .emoji {
-            font-size: 2.2em;
-            margin-bottom: 10px;
-        }
-        .footer {
-            margin-top: 50px;
-            color: #2d3a4b;
-            font-size: 1.1em;
-            opacity: 0.7;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🏆 Docker Voting App</h1>
-        <h2>Which do you prefer?</h2>
-        <form method="POST">
-            <button class="vote-btn wfh" name="vote" value="wfh">🏡 WFH (Work From Home)</button>
-            <button class="vote-btn wfo" name="vote" value="wfo">🏢 WFO (Work From Office)</button>
-        </form>
-        <div class="votes">
-            <div class="vote-box">
-                <div class="emoji">🏡</div>
-                <div class="vote-label">WFH Votes</div>
-                <div class="vote-count">{{ wfh }}</div>
-            </div>
-            <div class="vote-box">
-                <div class="emoji">🏢</div>
-                <div class="vote-label">WFO Votes</div>
-                <div class="vote-count">{{ wfo }}</div>
-            </div>
-        </div>
-    </div>
-    <div class="footer">
-        Made with ❤️ for the Docker Networking Magic Workshop
-    </div>
-</body>
-</html>
-"""
-
-@app.route("/", methods=["GET", "POST"])
-def index():
-    if request.method == "POST":
-        vote = request.form["vote"]
-        r.incr(f"votes:{vote}")
-
-    wfh = r.get("votes:wfh") or 0
-    wfo = r.get("votes:wfo") or 0
-    return render_template_string(TEMPLATE, wfh=wfh, wfo=wfo)
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
-````
-
----
-
-## app/requirements.txt
-
-```
-flask
-redis
+│   ├── run_app_without_db.sh
+│   ├── run_app_with_db_wrong_network.sh
+│   ├── fix_network.sh
+│   ├── run_app_and_redis_no_publish.sh
+│   ├── run_isolated_networks.sh
+│   ├── run_app_with_port_publish.sh
+│   └── cleanup.sh
+├── demo_manual.sh         # Interactive step-by-step demo
+├── demo_simple.sh         # Automated demo
+├── README.md             # Quick start guide
+└── scenario_03_networking.md
 ```
 
 ---
 
-## app/Dockerfile
+# ✅ Quick Start
 
-```Dockerfile
-FROM python:3.10
-
-WORKDIR /app
-COPY . .
-RUN pip install -r requirements.txt
-
-CMD ["python", "app.py"]
-```
-
----
-
-# ✅ Scenario Execution Steps
-
-## ⭐ **STEP 1 — Run App Without Database**
-
----
-
-### Run Redis (none yet)
-
-→ Not running at all initially.
-
----
-
-### Build Flask App
+## 🚀 Run the Interactive Demo (Recommended)
 
 ```bash
-docker build -t vote-app ./app
+cd Docker/docker-scenarios/scenario_03_networking
+
+# Run the interactive demo with explanations
+./demo_manual.sh
+
+# Or run the automated demo
+./demo_simple.sh
 ```
 
----
-
-### Run Flask App Without Redis
-
-Run without setting `REDIS_HOST`:
+## 🧹 Cleanup
 
 ```bash
-docker run -d --name vote-app -p 5000:5000 vote-app
-```
-
-✅ Open:
-
-```
-http://localhost:5000
+./scripts/cleanup.sh
 ```
 
 ---
 
-### Result
+# ✅ Demo Scripts Overview
 
-* Page loads → first adrenaline spike.
-* Click a vote → Flask **crashes.**
+## 📋 Manual Demo (`demo_manual.sh`)
 
-✅ Logs show:
+**Perfect for presentations and teaching:**
 
+- **Step-by-step control** - You control the pace
+- **Educational explanations** - Each step is explained
+- **Port checking** - Validates port availability
+- **Failure demonstrations** - Shows real error scenarios
+- **Success validation** - Confirms fixes work
+- **Interactive testing** - Tests voting functionality
+
+**Features:**
+- ✅ Port availability checking
+- ✅ Container status monitoring
+- ✅ Network connectivity testing
+- ✅ Educational content and explanations
+- ✅ Comprehensive error handling
+
+## 🤖 Simple Demo (`demo_simple.sh`)
+
+**Perfect for automated testing:**
+
+- **Fully automated** - Runs all steps automatically
+- **Quick validation** - Verify everything works
+- **CI/CD ready** - Can be integrated into pipelines
+- **No user interaction** - Perfect for testing
+
+---
+
+# ✅ Step-by-Step Execution
+
+---
+
+## 🔴 Step 1: App Without Database (Expected Failure)
+
+**What happens:**
+- Flask voting app starts successfully
+- App tries to connect to Redis database
+- Redis doesn't exist → connection fails
+- Voting crashes with error message
+
+**Learning moment:**
+- Containers are isolated by default
+- Apps need explicit database connections
+- No automatic service discovery
+
+**Key endpoints:**
+- `http://localhost:5000` - Voting app (crashes on vote)
+
+---
+
+## 🔴 Step 2: Database in Wrong Network (Expected Failure)
+
+**What happens:**
+- Redis database starts successfully
+- App tries to connect to Redis by hostname
+- Containers in different networks can't communicate
+- Hostname resolution fails
+
+**Learning moment:**
+- Docker networks isolate containers
+- Containers in different networks can't see each other
+- Need explicit network configuration
+
+**Key endpoints:**
+- `http://localhost:5000` - Voting app (still crashes)
+
+---
+
+## 🟢 Step 3: Fix the Network (Success!)
+
+**What happens:**
+- Create custom Docker network
+- Put both containers in same network
+- Hostname resolution works
+- Voting functionality works perfectly
+
+**Learning moment:**
+- Custom networks enable container communication
+- Hostname resolution within same network
+- This is how microservices communicate
+- Real-world pattern used daily
+
+**Key endpoints:**
+- `http://localhost:5000` - Voting app (works perfectly!)
+
+---
+
+## 🔍 Step 4: Container-to-Container Communication (No Port Publishing)
+
+**What happens:**
+- App and Redis run on same network
+- Port is NOT published to host
+- App is NOT accessible from browser
+- But containers can communicate internally
+
+**Learning moment:**
+- Containers can communicate without host access
+- Port publishing is separate from internal networking
+- Useful for internal-only services
+
+**Key endpoints:**
+- `http://localhost:5000` - NOT accessible (as expected)
+
+---
+
+## 🔍 Step 5: Network Inspection
+
+**What happens:**
+- Use `docker network ls` to see all networks
+- Use `docker network inspect` to see container connectivity
+- View IP addresses and network details
+
+**Learning moment:**
+- Docker networks are powerful tools for organizing and securing container communication
+- Network inspection helps debug connectivity issues
+- Understanding network topology is crucial for troubleshooting
+
+**Commands to try:**
+- `docker network ls` - List all networks
+- `docker network inspect vote-net` - Inspect specific network
+
+---
+
+## 🔴 Step 6: Network Isolation (Expected Failure)
+
+**What happens:**
+- App and Redis run on different networks
+- Both containers are running
+- App cannot connect to Redis
+- Demonstrates network security boundaries
+
+**Learning moment:**
+- Containers on different networks are isolated from each other
+- This is a key security feature in Docker
+- Network isolation prevents unauthorized communication
+
+**Key endpoints:**
+- `http://localhost:5000` - App accessible but fails to connect to Redis
+
+---
+
+## 🟢 Step 7: Port Publishing (Success!)
+
+**What happens:**
+- App runs with port published to host
+- App is accessible from your computer
+- Demonstrates how to access container services from host
+
+**Learning moment:**
+- Port publishing (`-p 5000:5000`) lets you access services running in containers from your own machine
+- Without port publishing, the app would only be accessible inside Docker
+
+**Key endpoints:**
+- `http://localhost:5000` - App accessible from host
+
+---
+
+# ✅ Educational Value
+
+## 🎓 Learning Objectives
+
+✅ **Docker Networking Concepts:**
+- Container isolation and communication
+- Network types and configurations
+- Hostname resolution in Docker
+- Port publishing and host access
+- Network inspection and debugging
+
+✅ **Real-World Problem Solving:**
+- Debugging container connectivity issues
+- Understanding error messages
+- Step-by-step troubleshooting
+- Network inspection and analysis
+
+✅ **Microservices Patterns:**
+- Service-to-service communication
+- Database connectivity patterns
+- Network architecture decisions
+- Internal vs external service access
+
+✅ **DevOps Practices:**
+- Container orchestration
+- Service discovery
+- Network security and isolation
+- Debugging and monitoring
+
+## 🔍 Key Concepts Demonstrated
+
+1. **Container Isolation** - Why containers can't always talk to each other
+2. **Docker Networks** - How to connect containers properly
+3. **Hostname Resolution** - How containers find each other
+4. **Service Communication** - Real-world microservices patterns
+5. **Port Publishing** - How to access containers from the host
+6. **Network Inspection** - How to debug and understand Docker networks
+7. **Network Isolation** - Security boundaries between containers
+
+---
+
+# ✅ Advanced Features
+
+## 📊 Monitoring & Validation
+
+Each step includes comprehensive validation:
+
+- **Port Checking** - Ensures ports are available
+- **Container Status** - Monitors container health
+- **Network Testing** - Validates connectivity
+- **Voting Tests** - Confirms functionality
+- **Error Handling** - Graceful failure modes
+- **Network Inspection** - Debug and understand connectivity
+
+## 🔧 Technical Implementation
+
+- **Flask Application** - Lightweight, fast voting app
+- **Redis Database** - In-memory data storage
+- **Docker Networks** - Custom network configuration
+- **Health Checks** - Built-in monitoring
+- **Error Handling** - Graceful failure modes
+- **Network Debugging** - Comprehensive troubleshooting tools
+
+## 🎯 Educational Design
+
+- **Progressive Complexity** - Each step builds on the previous
+- **Real Failures** - Actual system failures, not simulations
+- **Interactive Learning** - Hands-on experimentation
+- **Production Reality** - Real-world patterns and practices
+- **Comprehensive Debugging** - Learn to troubleshoot like a pro
+
+---
+
+# ✅ Troubleshooting & Debugging
+
+## 🚨 Common Issues
+
+**Port conflicts:**
+```bash
+# Check what's using a port
+lsof -i :5000
+
+# Clean up containers
+./scripts/cleanup.sh
 ```
-redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379. Connection refused.
+
+**Container not starting:**
+```bash
+# Check container logs
+docker logs vote-app
+
+# Check container status
+docker ps -a
 ```
 
----
+**Network issues:**
+```bash
+# Check network status
+docker network ls
 
-✅ **Lesson:** Containers can’t magically have databases available!
+# Inspect network
+docker network inspect vote-net
+```
 
----
-
-# 🚫 **Error #1 → Missing Database**
-
-**How to Fix:** Run Redis.
-
----
-
-# ✅ STEP 2 — Run Redis but In Wrong Network
-
----
-
-### Run Redis
-
-Run Redis **standalone**:
+## 🔧 Debug Commands
 
 ```bash
-docker run -d --name redis-server redis:alpine
+# Check all running containers
+docker ps
+
+# Check container logs
+docker logs vote-app
+docker logs redis-server
+
+# Test app endpoint
+curl http://localhost:5000
+
+# Test voting
+curl -X POST -d "vote=wfh" http://localhost:5000
+
+# Check network connectivity
+docker exec vote-app ping redis-server
+
+# Inspect networks
+docker network ls
+docker network inspect vote-net
+
+# Get shell inside container
+docker exec -it vote-app /bin/sh
 ```
 
 ---
 
-### Re-run Flask
+# ✅ What This Proves
+
+✅ **Docker Networking Works:**
+- Container isolation and communication
+- Real-world failure scenarios
+- Step-by-step problem solving
+- Network inspection and debugging
+
+✅ **Educational Value:**
+- Hands-on learning experience
+- Real error messages and fixes
+- Production-ready patterns
+- Comprehensive troubleshooting skills
+
+✅ **DevOps Skills:**
+- Container debugging
+- Network troubleshooting
+- Service orchestration
+- Network security understanding
+
+✅ **Real-World Application:**
+- Microservices communication
+- Database connectivity
+- Network architecture design
+- Security and isolation practices
+
+---
+
+# 🚀 Running Everything
+
+## Quick Start
 
 ```bash
-docker rm -f vote-app
+cd Docker/docker-scenarios/scenario_03_networking
 
-docker run -d --name vote-app -p 5000:5000 \
-    -e REDIS_HOST=redis-server \
-    vote-app
-```
+# Interactive demo (recommended)
+./demo_manual.sh
 
----
-
-### Result
-
-✅ App still crashes:
-
-```
-redis.exceptions.ConnectionError: Error 111 connecting to redis-server:6379. Name or service not known.
-```
-
----
-
-✅ **Lesson:**
-
-* Containers in separate networks **cannot see each other.**
-
----
-
-# 🚫 **Error #2 → Separate Networks**
-
-Flask container can’t resolve `redis-server` because:
-
-* Redis is in bridge network.
-* Flask is in another isolated network.
-
----
-
-# ✅ STEP 3 — Fix The Network
-
----
-
-### Create Custom Network
-
-```bash
-docker network create vote-net
-```
-
----
-
-### Run Redis in vote-net
-
-```bash
-docker rm -f redis-server
-
-docker run -d --name redis-server \
-    --network vote-net \
-    redis:alpine
-```
-
----
-
-### Run Flask in vote-net
-
-```bash
-docker rm -f vote-app
-
-docker run -d --name vote-app \
-    --network vote-net \
-    -p 5000:5000 \
-    -e REDIS_HOST=redis-server \
-    vote-app
-```
-
----
-
-✅ Open:
-
-```
-http://localhost:5000
-```
-
-Click vote buttons → **Votes increase!**
-
-✅ Votes are now saved → Redis works!
-
-✅ **Lesson:** Networking fixed. Containers communicate successfully.
-
----
-
-# ✅ STEP 4 — Make It Public!
-
-Let attendees **vote from their laptops!**
-
----
-
-## Option 1 — Expose Via ngrok
-
-Install ngrok:
-
-```bash
-brew install ngrok/ngrok/ngrok
-```
-
-Run:
-
-```bash
-ngrok http 5000
-```
-
-✅ Share public URL like:
-
-```
-https://glorious-bear-1234.ngrok.io
-```
-
-✅ Audience can vote → **real adrenaline!**
-
----
-
-## Option 2 — Expose Via Cloudflare Tunnel
-
-Install cloudflared:
-
-```bash
-brew install cloudflared
-```
-
-Run:
-
-```bash
-cloudflared tunnel --url http://localhost:5000
-```
-
-✅ Get public URL like:
-
-```
-https://vote.mydomain.com
-```
-
-✅ Audience votes → **infinite excitement.**
-
----
-
-# ✅ Clean Up
-
-```bash
-docker rm -f vote-app redis-server
-docker network rm vote-net
-```
-
----
-
-# ✅ Full Demo Script (Shell)
-
-**scripts/fix\_network.sh**
-
-```bash
-#!/bin/bash
+# Automated demo
+./demo_simple.sh
 
 # Cleanup
-docker rm -f vote-app redis-server
-docker network rm vote-net
+./scripts/cleanup.sh
+```
 
-# Create network
-docker network create vote-net
+## Manual Step-by-Step
 
-# Run redis
-docker run -d --name redis-server --network vote-net redis:alpine
+```bash
+# Step 1: App without database
+./scripts/run_app_without_db.sh
 
-# Build flask app
+# Step 2: Database in wrong network
+./scripts/run_app_with_db_wrong_network.sh
+
+# Step 3: Fix the network
+./scripts/fix_network.sh
+
+# Step 4: Internal communication (no port publishing)
+./scripts/run_app_and_redis_no_publish.sh
+
+# Step 5: Network inspection
+docker network ls
+docker network inspect vote-net
+
+# Step 6: Network isolation
+./scripts/run_isolated_networks.sh
+
+# Step 7: Port publishing
+./scripts/run_app_with_port_publish.sh
+```
+
+## Individual Commands
+
+```bash
+# Build the app
 docker build -t vote-app ./app
 
-# Run flask app
-docker run -d --name vote-app \
-    --network vote-net \
-    -p 5000:5000 \
-    -e REDIS_HOST=redis-server \
-    vote-app
+# Run without database
+docker run -d --name vote-app -p 5000:5000 vote-app
 
-echo "Vote app is live at http://localhost:5000"
+# Add Redis in wrong network
+docker run -d --name redis-server redis:alpine
+docker run -d --name vote-app -p 5000:5000 -e REDIS_HOST=redis-server vote-app
+
+# Fix with custom network
+docker network create vote-net
+docker run -d --name redis-server --network vote-net redis:alpine
+docker run -d --name vote-app --network vote-net -p 5000:5000 -e REDIS_HOST=redis-server vote-app
+
+# Internal communication (no port publishing)
+docker run -d --name vote-app --network vote-net -e REDIS_HOST=redis-server vote-app
+
+# Network isolation
+docker network create vote-net1
+docker network create vote-net2
+docker run -d --name redis-server --network vote-net1 redis:alpine
+docker run -d --name vote-app --network vote-net2 -p 5000:5000 -e REDIS_HOST=redis-server vote-app
 ```
 
 ---
+
+# 🎯 Success Criteria
+
+✅ **Educational Value:** Participants understand Docker networking concepts comprehensively
+
+✅ **Technical Demonstration:** Real container communication, failures, and debugging
+
+✅ **Interactive Experience:** Hands-on experimentation and learning
+
+✅ **Real-World Application:** Production-ready patterns and practices
+
+✅ **Comprehensive Coverage:** Isolation, communication, inspection, and security
+
+✅ **Debugging Skills:** Network inspection and troubleshooting capabilities
+
+This scenario provides a complete, educational Docker networking experience that teaches real-world container communication patterns through hands-on experimentation, comprehensive debugging, and memorable "AHA!" moments.

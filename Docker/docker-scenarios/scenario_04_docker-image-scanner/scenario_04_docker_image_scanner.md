@@ -1,133 +1,98 @@
-# Scenario 04: Docker Image Scanner - Hands-On Guide
+# Scenario 04: Docker Image Scanner - Hands-On, Production-Grade Guide
 
-## Objective
-Learn how to use the Docker Image Scanner to analyze Dockerfiles for security, best practices, and educational insights. This guide will walk you through setup, running the scanner, and testing with your own Dockerfiles.
-
----
-
-## Prerequisites
-- Docker installed and running
-- (Optional) Python 3.8+ and pip if you want to run locally
-- A web browser
+## 🎯 Learning Objective
+Master Docker security analysis using real vulnerability scanning (Trivy via Docker). Learn to identify security issues, apply best practices, and make informed image choices through interactive, unforgettable demos.
 
 ---
 
-## 1. Build and Run the Docker Image Scanner
+## 📋 Prerequisites
+- Docker installed and running (no need to install Trivy locally)
+- Web browser
+- Basic Docker knowledge
 
-### **A. Build the Docker Image**
+---
+
+## 🚀 Quick Start
+
+### 1. No Trivy Installation Needed!
+The app uses the official Trivy Docker image (`aquasec/trivy:latest`). Just ensure Docker is running and the Docker socket is available.
+
+### 2. Start the Analyzer
 ```bash
-docker build -t docker-analyser Docker/docker-scenarios/docker-image-scanner
+python app.py
 ```
 
-### **B. Run the Scanner Container**
-```bash
-docker run -d --rm \
-  -p 8899:8899 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  --name docker-analyser \
-  docker-analyser
-```
-
-- The web UI will be available at: [http://localhost:8899](http://localhost:8899)
+### 3. Open the App
+- Go to: http://localhost:8000
 
 ---
 
-## 2. Using the Web Interface
+## ✅ Pre-Flight Checklist
+- [ ] Docker is running (`docker ps`)
+- [ ] Port 8000 is available
+- [ ] Internet access (for pulling images and Trivy Docker image)
 
-1. **Open your browser and go to:** [http://localhost:8899](http://localhost:8899)
-2. **Click the "Analyze Dockerfile" tab.**
-3. **Upload any Dockerfile** (the file name does not matter, e.g., `Dockerfile`, `Dockerfile1`, etc.).
-4. **Wait for the analysis to complete.**
-5. **Review the results:**
-   - Security score and vulnerabilities
-   - Best practices and recommendations
-   - Educational insights
+---
+
+## 🐳 Demo Images
+- `nginx:1.25-alpine` (secure, minimal)
+- `python:3.11-slim` (modern, secure)
+- `python:3.8` (older, more vulnerabilities)
+- `node:18-alpine` (modern Node.js)
+- `ubuntu:22.04` (large, more vulnerabilities)
+
+---
+
+## 🛠️ How to Use
+
+### A. Image Analysis
+1. Enter an image name (e.g., `nginx:1.25-alpine`)
+2. Click "Analyze Image"
+3. Review:
+   - Security score & vulnerability breakdown
+   - Best practices & educational insights
    - Industry comparison
 
+### B. Image Comparison (Supercharged!)
+1. Click the "Compare Images" tab
+2. Enter two image names (e.g., `python:3.8` vs `python:3.11-slim`)
+3. See:
+   - Animated, side-by-side comparison
+   - Winner highlighted with a trophy
+   - Mini bar charts for vulnerabilities & score
+   - Downloadable comparison report
+   - Fun facts & security tips
+   - Swap or reset for more comparisons
+
 ---
 
-## 3. Testing with Example Dockerfiles
+## 🧠 What You'll Learn
+- CVE understanding & severity
+- Attack surface minimization
+- Secure base image selection
+- Non-root user best practices
+- Multi-stage builds & layer optimization
+- Secret management & image scanning
+- Real-world CI/CD integration
+- How to compare images for security trade-offs
 
-You can generate simple test Dockerfiles using the following script:
+---
 
+## 🧹 Clean Up
 ```bash
-#!/bin/bash
-mkdir -p simple_dockerfiles
-cd simple_dockerfiles
-cat > Dockerfile1 <<EOF
-FROM alpine:3.18
-CMD ["echo", "Hello from Alpine!"]
-EOF
-cat > Dockerfile2 <<EOF
-FROM ubuntu:22.04
-CMD ["bash", "-c", "echo Hello from Ubuntu! && cat /etc/os-release"]
-EOF
-cat > Dockerfile3 <<EOF
-FROM nginx:alpine
-EXPOSE 80
-EOF
-cat > Dockerfile4 <<EOF
-FROM busybox
-CMD ["sleep", "10"]
-EOF
-cat > Dockerfile5 <<EOF
-FROM debian:stable-slim
-CMD ["date"]
-EOF
+# Stop the app (Ctrl+C)
+# Optionally, clean up uploads/
+rm -rf uploads/*
 ```
 
-- Upload any of these files to the web UI for instant analysis.
+---
+
+## 💡 Next Steps
+- Integrate scanning into your CI/CD pipeline
+- Apply best practices to your own Dockerfiles
+- Educate your team on container security
+- Stay updated with the latest security tools
 
 ---
 
-## 4. Troubleshooting
-
-- **If the build fails:**
-  - Check the error message in the UI for details (e.g., syntax errors, missing base images).
-  - Make sure your Dockerfile is valid and does not require extra files.
-- **If the UI does not load:**
-  - Ensure the container is running (`docker ps`)
-  - Ensure nothing else is using port 8899
-- **To stop the scanner:**
-  ```bash
-  docker stop docker-analyser
-  ```
-
----
-
-## 5. Clean Up
-- To remove the container:
-  ```bash
-  docker stop docker-analyser
-  ```
-- To remove the image:
-  ```bash
-  docker rmi docker-analyser
-  ```
-
----
-
-## 6. Advanced: Run Locally (Optional)
-If you want to run the scanner without Docker:
-
-1. Install dependencies:
-   ```bash
-   cd Docker/docker-scenarios/docker-image-scanner
-   pip install -r requirements.txt
-   ```
-2. Start the app:
-   ```bash
-   python app.py
-   ```
-3. Open [http://localhost:8899](http://localhost:8899)
-
----
-
-## 7. Additional Tips
-- You can use any Dockerfile, with any name.
-- The scanner provides real Trivy vulnerability data and actionable recommendations.
-- Try modifying a Dockerfile (e.g., add `USER root` or expose a port) and see how the analysis changes.
-
----
-
-**Congratulations!** You have successfully used the Docker Image Scanner to analyze Dockerfiles for security and best practices. 
+**Built by Koti with ❤️ for this workshop.** 

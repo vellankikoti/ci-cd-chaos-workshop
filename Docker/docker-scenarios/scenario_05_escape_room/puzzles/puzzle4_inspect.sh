@@ -11,7 +11,7 @@ docker rm -f secret-keeper 2>/dev/null || true
 
 # Create a container with environment variables containing secrets
 docker run -d --name secret-keeper \
-  -e SECRET_CODE=docker_master_2024 \
+  -e SECRET_CODE=docker_master_2025 \
   -e DATABASE_URL=postgres://user:pass@db:5432/app \
   -e API_KEY=sk-1234567890abcdef \
   -e DEBUG=false \

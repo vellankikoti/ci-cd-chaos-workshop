@@ -603,7 +603,7 @@ tr:hover td {
   from {
     opacity: 0;
     transform: translateY(30px);
-  }
+}
   to {
     opacity: 1;
     transform: translateY(0);
@@ -629,7 +629,7 @@ tr:hover td {
   to {
     opacity: 0;
     transform: translateX(30px);
-  }
+}
 }
 
 /* ===== ANIMATED ELEMENTS ===== */

@@ -1,5 +1,0 @@
-pytest
-sqlalchemy
-testcontainers[mysql]
-docker
-requests 

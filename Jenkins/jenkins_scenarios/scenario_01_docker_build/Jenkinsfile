@@ -1,57 +1,41 @@
 pipeline {
     agent any
 
+    environment {
+        SCENARIO_PATH = '/workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_01_docker_build'
+        IMAGE_NAME = "chaos-workshop-docker-build"
+        BUILD_TAG = "${BUILD_NUMBER}"
+        CONTAINER_NAME = "chaos-app-v${params.APP_VERSION}"
+        IMAGE_TAG = "ci-cd-chaos-app:v${params.APP_VERSION}"
+        WORKSPACE_PATH = "/workspace/ci-cd-chaos-workshop"
+        DOCKERFILE_PATH = "${SCENARIO_PATH}/Dockerfile"
+    }
+
     parameters {
         string(
             name: 'APP_VERSION',
             defaultValue: '1',
             description: 'Which app version (1-5) do you want to build and run?'
         )
-    }
-
-    environment {
-        CONTAINER_NAME = "chaos-app-v${params.APP_VERSION}"
-        IMAGE_TAG = "ci-cd-chaos-app:v${params.APP_VERSION}"
-        DOCKERFILE_PATH = "Jenkins/jenkins_scenarios/scenario_01_docker_build/Dockerfile"
+        booleanParam(
+            name: 'CLEANUP_AFTER',
+            defaultValue: false,
+            description: 'Remove the app container after pipeline? (Default: false, so you can demo and inspect)'
+        )
     }
 
     stages {
-
-        stage('Pre-Cleanup') {
+        stage('Verify Local Workspace') {
             steps {
                 sh '''
-                    echo "🔪 Pre-cleanup: Killing any leftover app containers..."
-
-                    # Remove any container using port 3000
-                    docker ps -q --filter publish=3000 | xargs -r docker rm -f || true
-
-                    # Remove old container by name
-                    docker ps -a --filter "name=$CONTAINER_NAME" -q | xargs -r docker rm -f || true
-                '''
-            }
-        }
-
-        stage('Clone Repo Manually') {
-            steps {
-                sh '''
-                    rm -rf repo
-                    git clone --single-branch --branch phase-3-jenkins https://github.com/vellankikoti/ci-cd-chaos-workshop.git repo
-                '''
-            }
-        }
-
-        stage('Verify Workspace') {
-            steps {
-                sh '''
-                    cd repo
                     echo "=== WORKSPACE ==="
                     pwd
-                    echo "=== Repo contents ==="
+                    echo "=== Workspace contents ==="
                     ls -la
-                    echo "=== Checking Dockerfile path ==="
-                    ls -la Jenkins/jenkins_scenarios/scenario_01_docker_build
+                    echo "=== Checking scenario directory ==="
+                    ls -la ${SCENARIO_PATH}
 
-                    if [ ! -f Jenkins/jenkins_scenarios/scenario_01_docker_build/Dockerfile ]; then
+                    if [ ! -f ${SCENARIO_PATH}/Dockerfile ]; then
                         echo "ERROR: Dockerfile missing!"
                         exit 1
                     else
@@ -80,59 +64,114 @@ Valid versions are: 1, 2, 3, 4, 5.
             }
         }
 
-        stage('Build Docker Image') {
+        stage('🧹 Pre-Cleanup') {
+            steps {
+                sh '''
+                    echo "🔪 Pre-cleanup: Killing any leftover app containers..."
+                    docker ps -q --filter publish=3000 | xargs -r docker rm -f || true
+                    docker ps -a --filter "name=$CONTAINER_NAME" -q | xargs -r docker rm -f || true
+                '''
+            }
+        }
+
+        stage('🔧 Build Docker Image') {
             steps {
                 sh """
-                    cd repo
-                    docker build -t $IMAGE_TAG \\
-                        --build-arg APP_VERSION=${params.APP_VERSION} \\
-                        -f $DOCKERFILE_PATH \\
+                    APP_VERSION=${params.APP_VERSION}
+                    echo "🐳 Building Docker image for version \$APP_VERSION..."
+                    cd \$WORKSPACE_PATH
+                    docker build -t \$IMAGE_TAG \\
+                        --build-arg APP_VERSION=\$APP_VERSION \\
+                        -f \$DOCKERFILE_PATH \\
                         .
                 """
             }
         }
 
-        stage('Run App Container') {
+        stage('🚀 Run App Container') {
             steps {
                 sh """
-                    docker run -d --name $CONTAINER_NAME \\
+                    APP_VERSION=${params.APP_VERSION}
+                    CONTAINER_NAME=chaos-app-v\$APP_VERSION
+                    IMAGE_TAG=ci-cd-chaos-app:v\$APP_VERSION
+                    echo "🚀 Running app container: \$CONTAINER_NAME on port 3000..."
+                    docker run -d --name \$CONTAINER_NAME \\
                         -p 3000:3000 \\
-                        $IMAGE_TAG
+                        \$IMAGE_TAG
                 """
             }
         }
 
-        stage('Check App Logs') {
+        stage('📋 Check App Logs') {
             steps {
                 sh """
+                    APP_VERSION=${params.APP_VERSION}
+                    CONTAINER_NAME=chaos-app-v\$APP_VERSION
+                    echo "⏳ Waiting for app to start..."
                     sleep 5
                     echo "=== Container Logs ==="
-                    docker logs $CONTAINER_NAME
+                    docker logs \$CONTAINER_NAME
                 """
             }
         }
 
-        stage('Test App HTTP Response') {
+        stage('🌐 Test App HTTP Response') {
             steps {
-                sh '''
+                sh """
+                    APP_VERSION=${params.APP_VERSION}
+                    CONTAINER_NAME=chaos-app-v\$APP_VERSION
+                    echo "🌐 Testing HTTP response from app..."
                     sleep 3
-                    docker exec $CONTAINER_NAME sh -c "curl -s -o /dev/null -w '%{http_code}' http://localhost:3000" > status.txt
-                    STATUS_CODE=$(cat status.txt)
-                    echo "HTTP Status: $STATUS_CODE"
-                    if [ "$STATUS_CODE" -ne 200 ]; then
+                    # Test from inside the container network
+                    STATUS_CODE=\$(docker exec \$CONTAINER_NAME curl -s -o /dev/null -w '%{http_code}' http://localhost:3000 || echo "000")
+                    echo "HTTP Status: \$STATUS_CODE"
+                    if [ "\$STATUS_CODE" -ne 200 ]; then
                         echo "❌ App did not respond correctly!"
+                        echo "Container logs:"
+                        docker logs \$CONTAINER_NAME
+                        echo "Container status:"
+                        docker ps | grep \$CONTAINER_NAME
                         exit 1
                     else
                         echo "✅ App responded successfully!"
                     fi
-                '''
+                """
+            }
+        }
+
+        stage('🎉 Demo Instructions') {
+            steps {
+                echo "\n\n🎉 DEMO READY!"
+                echo "App version: ${params.APP_VERSION} is running in Docker container: $CONTAINER_NAME"
+                echo "Access it at: http://localhost:3000"
+                echo "To view logs: docker logs $CONTAINER_NAME"
+                echo "To stop/remove: docker rm -f $CONTAINER_NAME"
+                echo "Switch versions by re-running pipeline with a different APP_VERSION."
+                echo "---"
             }
         }
     }
 
     post {
         always {
-            echo "✨ Chaos Agent defeated… for now! Pipeline finished."
+            script {
+                if (params.CLEANUP_AFTER) {
+                    echo "🧹 CLEANUP_AFTER is true: Removing container $CONTAINER_NAME..."
+                    sh """
+                        docker rm -f $CONTAINER_NAME || true
+                        echo '✅ Cleanup completed'
+                    """
+                } else {
+                    echo "🛑 Container $CONTAINER_NAME left running for demo/manual inspection."
+                }
+                echo "✨ Chaos Agent defeated… for now! Pipeline finished."
+            }
+        }
+        success {
+            echo "🎉 Docker build and deployment completed successfully!"
+        }
+        failure {
+            echo "💥 Docker build or deployment failed - Chaos Agent strikes again!"
         }
     }
 }

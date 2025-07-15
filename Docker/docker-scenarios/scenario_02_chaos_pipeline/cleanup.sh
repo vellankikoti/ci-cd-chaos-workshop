@@ -26,6 +26,15 @@ else
     echo "ℹ️ No chaos containers found"
 fi
 
+# Clean up docker-compose services
+echo "🗑️ Cleaning up docker-compose services..."
+if [ -f "docker-compose-step5.yml" ]; then
+    docker-compose -f docker-compose-step5.yml down 2>/dev/null || true
+    echo "✅ Docker-compose services stopped"
+else
+    echo "ℹ️ No docker-compose file found"
+fi
+
 # Remove stable containers
 echo "🗑️ Removing stable containers..."
 STABLE_CONTAINERS=$(docker ps -aq --filter 'name=stable-*' 2>/dev/null)

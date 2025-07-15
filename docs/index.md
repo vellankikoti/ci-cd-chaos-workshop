@@ -11,7 +11,7 @@
 <div id="workshop-welcome-section" align="center" style="margin-bottom: 2rem;">
   <h1 style="font-size:1.8rem; font-weight:bold; margin-bottom:0.5rem;">Welcome to the Ultimate CI/CD Chaos Experience</h1>
   <p style="font-size:1.3rem; color:#326CE5;">Break things. Fix things. Become unstoppable.</p>
-  <a href="#start-here" class="workshop-button" style="font-size:1.2rem; padding:0.8rem 2rem; margin:1rem 0; background:linear-gradient(90deg,#326CE5,#00ADD8); color:white; border-radius:8px; text-decoration:none;">🚀 Start Your Journey</a>
+  <a href="phases/setup" class="workshop-button" style="font-size:1.2rem; padding:0.8rem 2rem; margin:1rem 0; background:linear-gradient(90deg,#326CE5,#00ADD8); color:white; border-radius:8px; text-decoration:none; box-shadow:0 4px 16px #326ce540; transition:background 0.2s;">🚀 Start Your Hands-On Journey</a>
 </div>
 
 ---

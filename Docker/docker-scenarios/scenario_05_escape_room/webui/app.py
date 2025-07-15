@@ -14,13 +14,13 @@ import re
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.secret_key = 'docker-escape-room-secret-key-2024'
+app.secret_key = 'docker-escape-room-secret-key-2025'
 
 # Game configuration
 PUZZLES = {
     1: {
         'name': 'The Secret Vault',
-        'clue': 'Dr. NullPointer has hidden the Escape Key inside a secret volume. Find the secret code in vault-volume at /secret/code.txt',
+        'clue': 'Dr. Bug has hidden the Escape Key inside a secret volume. Find the secret code in vault-volume at /secret/code.txt',
         'answer': 'escape123',
         'points': 10,
         'docker_command': 'docker run --rm -v vault-volume:/mnt busybox cat /mnt/secret/code.txt',
@@ -30,7 +30,7 @@ PUZZLES = {
     },
     2: {
         'name': 'The Network Detective',
-        'clue': 'Dr. NullPointer has created a mysterious container. Find the IP address of the container named "network-spy" and submit it.',
+        'clue': 'Dr. Bug has created a mysterious container. Find the IP address of the container named "network-spy" and submit it.',
         'answer': r'^(172\.\d+\.\d+\.\d+)$',
         'points': 10,
         'docker_command': 'docker inspect network-spy | grep IPAddress',
@@ -50,8 +50,8 @@ PUZZLES = {
     },
     4: {
         'name': 'The Secret Hunter',
-        'clue': 'Dr. NullPointer has hidden a secret environment variable. Find the value of SECRET_CODE in container "secret-keeper" and submit it.',
-        'answer': 'docker_master_2024',
+        'clue': 'Dr. Bug has hidden a secret environment variable. Find the value of SECRET_CODE in container "secret-keeper" and submit it.',
+        'answer': 'docker_master_2025',
         'points': 10,
         'docker_command': 'docker inspect secret-keeper | grep -A 10 -B 5 SECRET_CODE',
         'setup_script': 'puzzles/puzzle4_inspect.sh',
@@ -60,7 +60,7 @@ PUZZLES = {
     },
     5: {
         'name': 'The Image Sleuth',
-        'clue': 'Dr. NullPointer has created a suspicious image. Find the exact size (in MB) of the image "suspicious-image" and submit it.',
+        'clue': 'Dr. Bug has created a suspicious image. Find the exact size (in MB) of the image "suspicious-image" and submit it.',
         'answer': r'^(\d{2,4})$',
         'points': 10,
         'docker_command': 'docker images suspicious-image',
@@ -70,41 +70,42 @@ PUZZLES = {
     }
 }
 
-# Dr. NullPointer's taunts
+# Dr. Bug's taunts
 TAUNTS = [
-    "That's adorable… you think you can just `docker run` your way out?",
-    "Even my cat knows how to mount a volume.",
-    "Packets? Lost. Like your hopes.",
-    "Network errors are my love language.",
-    "Memory? You humans are always running out of it.",
-    "OOM Killer is my best friend.",
-    "Nice try. I've hidden secrets deeper than your debugging skills.",
-    "Inspect me all you want. You'll never escape.",
-    "A fat image is a slow image. Like you.",
-    "Multi-stage builds? Cute. Let's see if you can actually do it.",
-    "`docker run`? More like `docker ruin`.",
-    "Volumes… they're the dark matter of containers.",
-    "I hope you like inspecting things. Because you're going to be stuck inspecting this vault forever.",
-    "Your debugging skills are as weak as your container security.",
-    "Maybe try reading the documentation next time? Oh wait, you probably can't read.",
-    "Another failure? I'm starting to feel bad for you. Just kidding!",
-    "Are you sure you're a developer? You seem more like a `docker rm` expert.",
-    "Your containers are as broken as your understanding of Docker.",
-    "I've seen better Docker skills in a `hello-world` tutorial.",
-    "Maybe you should stick to `docker ps` and call it a day."
+    "🐛 Your pipeline is as stable as my coffee after 3 AM!",
+    "🐛 I've seen better error handling in a hello-world app!",
+    "🐛 Your containers are more broken than my last deployment!",
+    "🐛 Even my pet goldfish knows more about Docker than you!",
+    "🐛 Welcome to my chaos laboratory - where bugs become features!",
+    "🐛 Your CI/CD pipeline is giving me second-hand embarrassment!",
+    "🐛 Maybe stick to `docker ps` and call it a career!",
+    "🐛 I create chaos, you create... whatever this is!",
+    "🐛 Your debugging skills are as weak as your container security!",
+    "🐛 Maybe try reading the documentation next time? Oh wait, you probably can't read!",
+    "🐛 Another failure? I'm starting to feel bad for you. Just kidding!",
+    "🐛 Are you sure you're a developer? You seem more like a `docker rm` expert!",
+    "🐛 Your containers are as broken as your understanding of Docker!",
+    "🐛 I've seen better Docker skills in a `hello-world` tutorial!",
+    "🐛 Maybe you should stick to `docker ps` and call it a day!",
+    "🐛 Your chaos engineering skills are as predictable as a broken CI/CD pipeline!",
+    "🐛 I hope you like inspecting things. Because you're going to be stuck inspecting this vault forever!",
+    "🐛 Your containers are as stable as my production environment on a Monday morning!",
+    "🐛 Another bug in your code? How original!",
+    "🐛 Your Docker skills are giving me deployment anxiety!"
 ]
 
 SUCCESS_MESSAGES = [
-    "Hmph. You got lucky this time.",
-    "Not bad... for a beginner.",
-    "I suppose even a broken clock is right twice a day.",
-    "You're starting to impress me. Just a little.",
-    "Well done, but don't get cocky. There's more where that came from.",
-    "You're making progress. Don't let it go to your head.",
-    "I'll give you that one. But the next puzzle will be your downfall!",
-    "You're not completely hopeless. Yet.",
-    "A broken container can still run, I guess.",
-    "You're learning. Slowly. Very slowly."
+    "🐛 Hmph. You're starting to understand my chaos methods...",
+    "🐛 Not bad... for someone who probably Googles 'Docker basics' daily!",
+    "🐛 You're learning. Slowly. Like my CI/CD pipeline on a Monday morning!",
+    "🐛 Well done, but don't get cocky. My chaos is infinite!",
+    "🐛 You're starting to impress me. Just a little.",
+    "🐛 Well done, but don't get cocky. There's more chaos where that came from!",
+    "🐛 You're making progress. Don't let it go to your head.",
+    "🐛 I'll give you that one. But the next puzzle will be your downfall!",
+    "🐛 You're not completely hopeless. Yet.",
+    "🐛 A broken container can still run, I guess.",
+    "🐛 You're learning. Slowly. Very slowly."
 ]
 
 def initialize_game():
@@ -115,6 +116,24 @@ def initialize_game():
     session['completed_puzzles'] = []
     session['game_completed'] = False
     session['hint_used'] = {}
+    
+    # Auto-setup all puzzles for seamless experience
+    setup_all_puzzles()
+
+def setup_all_puzzles():
+    """Setup all puzzles automatically for seamless workshop experience"""
+    print("🐛 Dr. Bug is setting up his chaos laboratory...")
+    for puzzle_id, puzzle in PUZZLES.items():
+        try:
+            print(f"Setting up Puzzle {puzzle_id}: {puzzle['name']}")
+            success = run_setup_script(puzzle['setup_script'])
+            if success:
+                print(f"✅ Puzzle {puzzle_id} setup successful")
+            else:
+                print(f"❌ Puzzle {puzzle_id} setup failed")
+        except Exception as e:
+            print(f"❌ Warning: Could not setup puzzle {puzzle_id}: {e}")
+    print("✅ All puzzles are ready for chaos!")
 
 def get_random_taunt():
     return random.choice(TAUNTS)
@@ -144,15 +163,13 @@ def check_puzzle_answer(puzzle_id, user_answer):
 
 @app.route('/')
 def index():
-    if 'current_puzzle' not in session:
-        initialize_game()
+    # Always reset session for a fresh start
+    session.clear()
+    initialize_game()
     current_puzzle = session.get('current_puzzle', 1)
     puzzle = PUZZLES.get(current_puzzle)
     if not puzzle:
         return redirect(url_for('game_complete'))
-    if current_puzzle not in session.get('completed_puzzles', []):
-        run_setup_script(puzzle['setup_script'])
-    # Only show the command if hint was used
     show_command = session.get('hint_used', {}).get(str(current_puzzle), False)
     return render_template('escape.html',
         puzzle=puzzle,
@@ -264,13 +281,26 @@ def game_complete():
     return render_template('complete.html',
         score=session.get('score', 0),
         time_taken=time_taken,
-        total_puzzles=len(PUZZLES))
+        total_puzzles=len(PUZZLES),
+        show_restart=True)
 
 @app.route('/reset')
 def reset_game():
     session.clear()
     initialize_game()
     return redirect(url_for('index'))
+
+@app.route('/force_setup')
+def force_setup():
+    """Force re-setup of all puzzles (for debugging)"""
+    setup_all_puzzles()
+    return jsonify({'status': 'success', 'message': 'All puzzles re-setup!'})
+
+@app.route('/test_setup')
+def test_setup():
+    """Test endpoint to manually trigger setup"""
+    setup_all_puzzles()
+    return jsonify({'status': 'success', 'message': 'Setup completed'})
 
 @app.route('/api/game_state')
 def game_state():
@@ -284,4 +314,4 @@ def game_state():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001) 
+    app.run(debug=True, host='0.0.0.0', port=5000) 
