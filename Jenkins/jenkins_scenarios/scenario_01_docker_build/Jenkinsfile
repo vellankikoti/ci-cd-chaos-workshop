@@ -2,12 +2,12 @@ pipeline {
     agent any
 
     environment {
-        SCENARIO_PATH = '/workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_01_docker_build'
+        // Use dynamic workspace path instead of hardcoded
+        SCENARIO_PATH = "${WORKSPACE}/Jenkins/jenkins_scenarios/scenario_01_docker_build"
         IMAGE_NAME = "chaos-workshop-docker-build"
         BUILD_TAG = "${BUILD_NUMBER}"
         CONTAINER_NAME = "chaos-app-v${params.APP_VERSION}"
         IMAGE_TAG = "ci-cd-chaos-app:v${params.APP_VERSION}"
-        WORKSPACE_PATH = "/workspace/ci-cd-chaos-workshop"
         DOCKERFILE_PATH = "${SCENARIO_PATH}/Dockerfile"
     }
 
@@ -25,22 +25,96 @@ pipeline {
     }
 
     stages {
-        stage('Verify Local Workspace') {
+        stage('🔧 Setup Docker Permissions') {
             steps {
                 sh '''
-                    echo "=== WORKSPACE ==="
-                    pwd
+                    echo "🔧 Setting up Docker permissions..."
+                    
+                    # Ensure Docker socket is accessible
+                    if [ ! -S /var/run/docker.sock ]; then
+                        echo "ERROR: Docker socket not found at /var/run/docker.sock!"
+                        echo "Make sure Docker is running and the socket is mounted in Jenkins container"
+                        exit 1
+                    fi
+                    
+                    # Check current user and Docker socket permissions
+                    echo "Current user: $(whoami)"
+                    echo "Docker socket permissions: $(ls -la /var/run/docker.sock)"
+                    
+                    # Try to fix permissions if needed (ignore errors if no sudo access)
+                    sudo chmod 666 /var/run/docker.sock 2>/dev/null || echo "Note: Could not change socket permissions (no sudo access)"
+                    
+                    # Test Docker access
+                    if docker ps > /dev/null 2>&1; then
+                        echo "✅ Docker access verified successfully"
+                        docker --version
+                    else
+                        echo "❌ ERROR: Cannot access Docker daemon"
+                        echo "Please ensure:"
+                        echo "1. Docker is running"
+                        echo "2. Jenkins container has Docker socket mounted: -v /var/run/docker.sock:/var/run/docker.sock"
+                        echo "3. Jenkins user has Docker permissions"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+
+        stage('📁 Verify Local Workspace') {
+            steps {
+                sh '''
+                    echo "=== WORKSPACE VERIFICATION ==="
+                    echo "Current working directory: $(pwd)"
+                    echo "WORKSPACE environment variable: ${WORKSPACE}"
+                    echo "SCENARIO_PATH: ${SCENARIO_PATH}"
+                    
                     echo "=== Workspace contents ==="
                     ls -la
-                    echo "=== Checking scenario directory ==="
-                    ls -la ${SCENARIO_PATH}
-
-                    if [ ! -f ${SCENARIO_PATH}/Dockerfile ]; then
-                        echo "ERROR: Dockerfile missing!"
-                        exit 1
+                    
+                    echo "=== Checking for Jenkins directory ==="
+                    if [ -d "Jenkins" ]; then
+                        echo "✅ Jenkins directory found"
+                        ls -la Jenkins/
                     else
-                        echo "✅ Dockerfile found!"
+                        echo "❌ Jenkins directory not found in workspace"
+                        echo "Available directories:"
+                        ls -la
+                        exit 1
                     fi
+                    
+                    echo "=== Checking scenario directory ==="
+                    if [ -d "${SCENARIO_PATH}" ]; then
+                        echo "✅ Scenario directory found: ${SCENARIO_PATH}"
+                        ls -la "${SCENARIO_PATH}/"
+                    else
+                        echo "❌ Scenario directory not found: ${SCENARIO_PATH}"
+                        echo "Checking if Jenkins scenarios exist..."
+                        find . -name "scenario_01_docker_build" -type d
+                        exit 1
+                    fi
+
+                    echo "=== Checking required files ==="
+                    for file in Dockerfile requirements.txt; do
+                        if [ -f "${SCENARIO_PATH}/${file}" ]; then
+                            echo "✅ ${file} found"
+                        else
+                            echo "❌ ${file} not found in ${SCENARIO_PATH}"
+                            echo "Contents of scenario directory:"
+                            ls -la "${SCENARIO_PATH}/"
+                            exit 1
+                        fi
+                    done
+                    
+                    echo "=== Checking app directory ==="
+                    if [ -d "${SCENARIO_PATH}/app" ]; then
+                        echo "✅ App directory found"
+                        ls -la "${SCENARIO_PATH}/app/"
+                    else
+                        echo "❌ App directory not found"
+                        exit 1
+                    fi
+                    
+                    echo "✅ All workspace verification checks passed!"
                 '''
             }
         }
@@ -79,11 +153,28 @@ Valid versions are: 1, 2, 3, 4, 5.
                 sh """
                     APP_VERSION=${params.APP_VERSION}
                     echo "🐳 Building Docker image for version \$APP_VERSION..."
-                    cd \$WORKSPACE_PATH
+                    echo "Current directory: \$(pwd)"
+                    echo "Using Dockerfile: ${DOCKERFILE_PATH}"
+                    echo "Build context: ${WORKSPACE}"
+                    
+                    # Ensure we're in the workspace root for build context
+                    cd "${WORKSPACE}"
+                    
+                    # Build the Docker image
                     docker build -t \$IMAGE_TAG \\
                         --build-arg APP_VERSION=\$APP_VERSION \\
-                        -f \$DOCKERFILE_PATH \\
-                        .
+                        -f "${DOCKERFILE_PATH}" \\
+                        . || {
+                        echo "❌ Docker build failed!"
+                        echo "Dockerfile content:"
+                        cat "${DOCKERFILE_PATH}"
+                        echo "Build context files:"
+                        ls -la
+                        exit 1
+                    }
+                    
+                    echo "✅ Docker image built successfully: \$IMAGE_TAG"
+                    docker images | grep \$IMAGE_TAG || echo "Warning: Image not found in docker images output"
                 """
             }
         }

@@ -24,51 +24,139 @@ pipeline {
         IMAGE_NAME = "chaos-workshop-scenario-03"
         BUILD_TAG = "${BUILD_NUMBER}"
         REPORTS_DIR = 'reports'
-        SCENARIO_PATH = '/workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_03_html_reports'
+        // Use dynamic workspace path instead of hardcoded
+        SCENARIO_PATH = "${WORKSPACE}/Jenkins/jenkins_scenarios/scenario_03_html_reports"
     }
     
     stages {
-        stage('Verify Local Workspace') {
+        stage('🔧 Setup Docker Permissions') {
             steps {
                 sh '''
-                    echo "=== WORKSPACE ==="
-                    pwd
+                    echo "🔧 Setting up Docker permissions..."
+                    
+                    # Ensure Docker socket is accessible
+                    if [ ! -S /var/run/docker.sock ]; then
+                        echo "ERROR: Docker socket not found at /var/run/docker.sock!"
+                        echo "Make sure Docker is running and the socket is mounted in Jenkins container"
+                        exit 1
+                    fi
+                    
+                    # Check current user and Docker socket permissions
+                    echo "Current user: $(whoami)"
+                    echo "Docker socket permissions: $(ls -la /var/run/docker.sock)"
+                    
+                    # Try to fix permissions if needed (ignore errors if no sudo access)
+                    sudo chmod 666 /var/run/docker.sock 2>/dev/null || echo "Note: Could not change socket permissions (no sudo access)"
+                    
+                    # Test Docker access
+                    if docker ps > /dev/null 2>&1; then
+                        echo "✅ Docker access verified successfully"
+                        docker --version
+                    else
+                        echo "❌ ERROR: Cannot access Docker daemon"
+                        echo "Please ensure:"
+                        echo "1. Docker is running"
+                        echo "2. Jenkins container has Docker socket mounted: -v /var/run/docker.sock:/var/run/docker.sock"
+                        echo "3. Jenkins user has Docker permissions"
+                        exit 1
+                    fi
+                '''
+            }
+        }
+
+        stage('📁 Verify Local Workspace') {
+            steps {
+                sh '''
+                    echo "=== WORKSPACE VERIFICATION ==="
+                    echo "Current working directory: $(pwd)"
+                    echo "WORKSPACE environment variable: ${WORKSPACE}"
+                    echo "SCENARIO_PATH: ${SCENARIO_PATH}"
+                    
                     echo "=== Workspace contents ==="
                     ls -la
-                    echo "=== Checking scenario directory ==="
-                    ls -la ${SCENARIO_PATH}
-
-                    if [ ! -f ${SCENARIO_PATH}/Dockerfile ]; then
-                        echo "ERROR: Dockerfile missing!"
-                        exit 1
+                    
+                    echo "=== Checking for Jenkins directory ==="
+                    if [ -d "Jenkins" ]; then
+                        echo "✅ Jenkins directory found"
+                        ls -la Jenkins/
                     else
-                        echo "✅ Dockerfile found!"
+                        echo "❌ Jenkins directory not found in workspace"
+                        echo "Available directories:"
+                        ls -la
+                        exit 1
                     fi
+                    
+                    echo "=== Checking scenario directory ==="
+                    if [ -d "${SCENARIO_PATH}" ]; then
+                        echo "✅ Scenario directory found: ${SCENARIO_PATH}"
+                        ls -la "${SCENARIO_PATH}/"
+                    else
+                        echo "❌ Scenario directory not found: ${SCENARIO_PATH}"
+                        echo "Checking if Jenkins scenarios exist..."
+                        find . -name "scenario_03_html_reports" -type d
+                        exit 1
+                    fi
+
+                    echo "=== Checking required files ==="
+                    for file in Dockerfile report_generator.py; do
+                        if [ -f "${SCENARIO_PATH}/${file}" ]; then
+                            echo "✅ ${file} found"
+                        else
+                            echo "❌ ${file} not found in ${SCENARIO_PATH}"
+                            echo "Contents of scenario directory:"
+                            ls -la "${SCENARIO_PATH}/"
+                            exit 1
+                        fi
+                    done
+                    
+                    echo "=== Checking tests directory ==="
+                    if [ -d "${SCENARIO_PATH}/tests" ]; then
+                        echo "✅ Tests directory found"
+                        ls -la "${SCENARIO_PATH}/tests/"
+                    else
+                        echo "❌ Tests directory not found"
+                        exit 1
+                    fi
+                    
+                    echo "=== Creating reports directory ==="
+                    mkdir -p "${WORKSPACE}/reports"
+                    echo "✅ Reports directory ready: ${WORKSPACE}/reports"
+                    
+                    echo "✅ All workspace verification checks passed!"
                 '''
             }
         }
 
         stage('🔧 Build Docker Image') {
             steps {
-                script {
-                    // Ensure report_generator.py is present in the scenario directory
-                    sh '''
-                        echo "Checking for report_generator.py in scenario directory..."
-                        if [ ! -f "${SCENARIO_PATH}/report_generator.py" ]; then
-                          echo "report_generator.py missing, attempting to copy from repo root..."
-                          cp /workspace/ci-cd-chaos-workshop/Jenkins/jenkins_scenarios/scenario_03_html_reports/report_generator.py "${SCENARIO_PATH}/" || true
-                        fi
-                        echo "Contents of scenario directory before build:"
-                        ls -la "${SCENARIO_PATH}"
-                    '''
-                }
                 sh """
-                    echo "🛠️ Building Docker image: ${IMAGE_NAME}"
+                    echo "🛠️ Building Docker image: ${IMAGE_NAME}:${BUILD_TAG}"
+                    echo "Current directory: \$(pwd)"
+                    echo "Using Dockerfile: ${SCENARIO_PATH}/Dockerfile"
+                    echo "Build context: ${SCENARIO_PATH}"
+                    
+                    # Verify all required files are present
+                    echo "=== Verifying build context files ==="
+                    ls -la "${SCENARIO_PATH}/"
+                    
+                    # Show Dockerfile content for debugging
+                    echo "=== Dockerfile content ==="
+                    cat "${SCENARIO_PATH}/Dockerfile"
+                    
+                    # Build the Docker image
                     docker build \
                         --no-cache \
                         -t ${IMAGE_NAME}:${BUILD_TAG} \
-                        -f ${SCENARIO_PATH}/Dockerfile \
-                        ${SCENARIO_PATH}
+                        -f "${SCENARIO_PATH}/Dockerfile" \
+                        "${SCENARIO_PATH}" || {
+                        echo "❌ Docker build failed!"
+                        echo "Build context contents:"
+                        ls -la "${SCENARIO_PATH}/"
+                        exit 1
+                    }
+                    
+                    echo "✅ Docker image built successfully: ${IMAGE_NAME}:${BUILD_TAG}"
+                    docker images | grep "${IMAGE_NAME}" || echo "Warning: Image not found in docker images output"
                 """
             }
         }
@@ -89,26 +177,61 @@ pipeline {
                     def testMode = params.TEST_MODE
                     sh """
                         echo "=== Running tests in Docker container ==="
+                        echo "Test mode: ${testMode}"
+                        
+                        # Ensure reports directory exists and is accessible
+                        mkdir -p "${WORKSPACE}/reports"
+                        chmod 777 "${WORKSPACE}/reports"
+                        
+                        # Run tests in container
                         docker run --rm \\
                             -v /var/run/docker.sock:/var/run/docker.sock \\
-                            -v \$(pwd)/reports:/app/reports \\
+                            -v "${WORKSPACE}/reports:/app/reports" \\
                             ${IMAGE_NAME}:${BUILD_TAG} \\
                             sh -c "
                                 cd /app
-                                echo 'Debug: Checking test files...'
-                                ls -la tests/
-                                echo 'Running config validation tests...'
-                                pytest tests/test_config_validation_${testMode}.py -v --json-report --json-report-file=reports/config_validation_${testMode}.json || echo 'Config validation tests failed'
-                                echo 'Running API health tests...'
-                                pytest tests/test_api_health_${testMode}.py -v --json-report --json-report-file=reports/api_health_${testMode}.json || echo 'API health tests failed'
-                                echo 'Running PostgreSQL tests...'
-                                pytest tests/test_postgres_${testMode}.py -v --json-report --json-report-file=reports/postgres_${testMode}.json || echo 'PostgreSQL tests failed'
-                                echo 'Running Redis tests...'
-                                pytest tests/test_redis_${testMode}.py -v --json-report --json-report-file=reports/redis_${testMode}.json || echo 'Redis tests failed'
-                                echo 'Running secret scan tests...'
-                                pytest tests/test_secret_scan_${testMode}.py -v --json-report --json-report-file=reports/secret_scan_${testMode}.json || echo 'Secret scan tests failed'
-                                echo 'Generating HTML report...'
-                                python report_generator.py || echo 'Report generation failed'
+                                echo '=== Container Environment Check ==='
+                                pwd
+                                ls -la
+                                echo 'Python version:' && python --version
+                                echo 'Pytest version:' && pytest --version
+                                
+                                echo '=== Debug: Checking test files ==='
+                                if [ -d tests/ ]; then
+                                    ls -la tests/
+                                    echo 'Available test files:'
+                                    find tests/ -name '*.py' | head -10
+                                else
+                                    echo 'Tests directory not found!'
+                                    exit 1
+                                fi
+                                
+                                echo '=== Running Tests ==='
+                                # Find and run appropriate test files based on mode
+                                TEST_FILES=\$(find tests/ -name '*${testMode}*.py' | tr '\n' ' ')
+                                
+                                if [ -n \"\$TEST_FILES\" ]; then
+                                    echo \"Running test files: \$TEST_FILES\"
+                                    for test_file in \$TEST_FILES; do
+                                        test_name=\$(basename \"\$test_file\" .py)
+                                        echo \"Running \$test_file...\"
+                                        pytest \"\$test_file\" -v --json-report --json-report-file=\"reports/\${test_name}.json\" || echo \"Test \$test_file failed\"
+                                    done
+                                else
+                                    echo \"No specific test files found for mode ${testMode}, running all tests\"
+                                    pytest tests/ -v --json-report --json-report-file=\"reports/all_tests_${testMode}.json\" || echo \"Some tests failed\"
+                                fi
+                                
+                                echo '=== Generating HTML Report ==='
+                                if [ -f report_generator.py ]; then
+                                    python report_generator.py || echo 'Report generation failed'
+                                else
+                                    echo 'report_generator.py not found, creating basic report'
+                                    echo '<h1>Test Results</h1><p>Tests completed in ${testMode} mode</p>' > reports/test_report.html
+                                fi
+                                
+                                echo '=== Report Files Generated ==='
+                                ls -la reports/
                             "
                     """
                 }

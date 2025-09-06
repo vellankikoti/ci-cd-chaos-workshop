@@ -4,3 +4,4 @@ redis
 pymongo
 pymysql
 psycopg2-binary
+pytest
