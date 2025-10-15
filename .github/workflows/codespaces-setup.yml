@@ -1,0 +1,29 @@
+name: Codespaces Setup
+
+on:
+  create:
+    types: [codespace]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Codespaces environment
+        run: |
+          echo "🚀 Setting up CI/CD Chaos Workshop in Codespaces..."
+          
+          # Make scripts executable
+          chmod +x .devcontainer/post-create.sh
+          chmod +x .devcontainer/post-start.sh
+          chmod +x .devcontainer/workshop-launcher.py
+          
+          # Create workspace directory
+          mkdir -p /workspaces/ci-cd-chaos-workshop
+          
+          # Copy workshop files
+          cp -r . /workspaces/ci-cd-chaos-workshop/
+          
+          echo "✅ Codespaces setup completed!"

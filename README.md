@@ -18,6 +18,58 @@ Welcome to the **CI/CD Chaos Workshop** - where we intentionally break things to
 
 ---
 
+## 🚀 **Getting Started - Choose Your Path**
+
+> **📖 Need detailed instructions?** See [GETTING_STARTED.md](GETTING_STARTED.md) for a complete step-by-step guide.
+
+### **Option 1: 🌐 GitHub Codespaces (Recommended)**
+**Best for: Beginners, quick start, no setup issues**
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?repo=vellankikoti/ci-cd-chaos-workshop)
+
+1. **Click the button above** → Wait 2-3 minutes → Run `python3 .devcontainer/workshop-launcher.py`
+2. **Everything is pre-installed** - Python, Docker, Kubernetes, Jenkins
+3. **Zero setup required** - Works in any browser
+
+### **Option 2: 🏠 Local Installation**
+**Best for: Advanced users, offline work, custom environments**
+
+```bash
+git clone https://github.com/vellankikoti/ci-cd-chaos-workshop.git
+cd ci-cd-chaos-workshop
+python3 testcontainers/setup.py
+python3 jenkins/jenkins-setup.py setup
+python3 kubernetes/universal-setup.py
+```
+
+**Requires:** Python 3.10+, Docker Desktop, Kubernetes (see [Prerequisites](#-prerequisites))
+
+---
+
+## 🎯 **What You'll Master**
+
+### **Technical Skills**
+- ✅ **Write bulletproof integration tests** with TestContainers
+- ✅ **Build production-ready Docker images** with multi-stage builds
+- ✅ **Create robust Jenkins pipelines** with proper error handling
+- ✅ **Deploy Python applications** to Kubernetes clusters
+- ✅ **Implement GitOps workflows** with ArgoCD
+- ✅ **Handle chaos scenarios** gracefully in production
+
+### **DevOps Mindset**
+- ✅ **Think like a Chaos Engineer** - anticipate and prevent failures
+- ✅ **Build resilient systems** that can handle unexpected issues
+- ✅ **Automate everything** - reduce manual intervention
+- ✅ **Monitor and alert** - know when things go wrong
+- ✅ **Document everything** - make knowledge transferable
+
+### **Real-World Experience**
+- ✅ **25+ Production Scenarios** based on actual challenges
+- ✅ **Portfolio Projects** you can showcase to employers
+- ✅ **Community Recognition** in the DevOps space
+
+---
+
 ## 🌟 **What Makes This Workshop Special**
 
 ### 🎬 **Story-Driven Learning**
@@ -32,16 +84,264 @@ Welcome to the **CI/CD Chaos Workshop** - where we intentionally break things to
 
 ---
 
-## 🛠️ **Prerequisites**
+## 🚨 **OFFLINE WORKSHOP MODE**
 
-### **Required Software**
-- **🐍 Python 3.10+** - Primary automation language
-- **🐳 Docker Desktop** - Containerization platform
-- **☸️ Kubernetes** - Container orchestration (minikube, Docker Desktop, or cloud cluster)
-- **🤖 Jenkins** - CI/CD automation platform
-- **🧪 Testcontainers Desktop** - Integration testing framework
+**⚡ NEW: Workshop Now Works Without Internet!**
 
-### **Installation Guide**
+If you're running this workshop at a conference/venue with slow/no internet:
+
+**📖 Read**: [OFFLINE-MODE-HOWTO.md](OFFLINE-MODE-HOWTO.md) - Complete offline solution
+
+**Quick Summary**:
+- Download images once (60 min with good internet)
+- Distribute via USB/network at workshop
+- Attendees ready in 15 minutes (no internet needed!)
+- **100% participation guaranteed** 🎉
+
+---
+
+## 🌐 **GitHub Codespaces (Recommended)**
+
+**⚡ NEW: Run the entire workshop in the cloud with zero setup!**
+
+### 🚀 One-Click Launch
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?repo=vellankikoti/ci-cd-chaos-workshop)
+
+> **💡 What is GitHub Codespaces?** It's a cloud-based development environment that runs in your browser. No local installation required - everything runs in the cloud!
+
+### 🎯 What's Pre-Installed
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| **Python** | 3.11 | Primary automation language |
+| **Docker** | Latest | Containerization platform |
+| **Kubernetes** | Latest | Container orchestration (Kind cluster) |
+| **Jenkins** | Latest | CI/CD automation (146+ plugins) |
+| **TestContainers** | Latest | Database testing framework |
+| **VS Code** | Latest | Code editor with extensions |
+| **Git** | Latest | Version control |
+| **Helm** | Latest | Kubernetes package manager |
+
+### 📋 Step-by-Step Instructions
+
+#### **Step 1: Launch Codespace**
+1. **Click the "Open in GitHub Codespaces" button** above
+2. **Wait for environment setup** (2-3 minutes)
+   - You'll see setup messages in the terminal
+   - All tools and dependencies are installed automatically
+3. **Environment is ready** when you see the terminal prompt
+
+#### **Step 2: Start the Workshop**
+```bash
+# Run the interactive workshop launcher
+python3 .devcontainer/workshop-launcher.py
+```
+
+#### **Step 3: Choose Your Path**
+The launcher will show you a menu with these options:
+- **1. 🧪 TestContainers Chaos** - Real database testing
+- **2. 🐳 Docker Sabotage** - Containerization mastery  
+- **3. 🤖 Jenkins Pipeline Showdown** - CI/CD automation
+- **4. ☸️ Kubernetes Warzone** - Container orchestration
+- **5. 🎮 Interactive Demo** - Run all scenarios
+- **6. 📚 Documentation** - Read the guides
+
+#### **Step 4: Follow the Workshop**
+- Each phase has detailed instructions
+- All scenarios are pre-configured and ready to run
+- Interactive guidance throughout the process
+
+### 🎯 Workshop Phases - Detailed Instructions
+
+#### **Phase 1: 🧪 TestContainers Chaos** *(15-35 min)*
+```bash
+# Option A: Use the launcher (recommended)
+python3 .devcontainer/workshop-launcher.py
+# Choose option 1
+
+# Option B: Manual setup
+cd testcontainers
+python3 setup.py
+python3 labs/basics/lab1_postgresql_basics.py
+```
+
+**What you'll learn:**
+- Real database testing with PostgreSQL, MySQL, Redis, MongoDB
+- Handle connection failures gracefully
+- Write bulletproof integration tests
+
+#### **Phase 2: 🐳 Docker Sabotage** *(35-55 min)*
+```bash
+# Option A: Use the launcher (recommended)
+python3 .devcontainer/workshop-launcher.py
+# Choose option 2
+
+# Option B: Manual setup
+cd docker/docker-scenarios
+ls -la  # See available scenarios
+# Follow individual scenario guides
+```
+
+**What you'll learn:**
+- Multi-stage Docker builds
+- Container security best practices
+- Network failure handling
+- Image optimization techniques
+
+#### **Phase 3: 🤖 Jenkins Pipeline Showdown** *(55-80 min)*
+```bash
+# Option A: Use the launcher (recommended)
+python3 .devcontainer/workshop-launcher.py
+# Choose option 3
+
+# Option B: Manual setup
+cd jenkins
+python3 jenkins-setup.py setup
+# Access Jenkins at http://localhost:8080
+# Username: admin, Password: admin
+```
+
+**What you'll learn:**
+- Write robust Jenkinsfiles
+- Integrate Testcontainers in CI/CD
+- Generate professional reports
+- Manage secrets securely
+
+#### **Phase 4: ☸️ Kubernetes Warzone** *(80-105 min)*
+```bash
+# Option A: Use the launcher (recommended)
+python3 .devcontainer/workshop-launcher.py
+# Choose option 4
+
+# Option B: Manual setup
+cd kubernetes
+python3 universal-setup.py
+kubectl get nodes
+```
+
+**What you'll learn:**
+- Deploy Python apps to Kubernetes
+- Implement auto-scaling strategies
+- Master blue-green deployments
+- Understand GitOps principles
+
+### 🌟 Why Choose Codespaces?
+
+| Feature | Codespaces | Local Setup |
+|---------|------------|-------------|
+| **Setup Time** | 2-3 minutes | 30-60 minutes |
+| **Dependencies** | Pre-installed | Manual installation |
+| **Consistency** | Same for everyone | Varies by system |
+| **Network Issues** | None | Common |
+| **Updates** | Automatic | Manual |
+| **Collaboration** | Built-in sharing | Complex setup |
+| **Cost** | Free (public repos) | Hardware required |
+
+### 🔧 Troubleshooting Codespaces
+
+#### **Common Issues & Solutions**
+
+**❌ Codespace not starting?**
+```bash
+# Check GitHub Codespaces status
+# Visit: https://github.com/codespaces
+# Try creating a new Codespace
+# Ensure you have Codespaces access
+```
+
+**❌ Docker not working?**
+```bash
+# The environment includes Docker-in-Docker
+# All Docker commands work normally
+docker --version  # Should show Docker version
+docker ps         # Should show running containers
+```
+
+**❌ Kubernetes issues?**
+```bash
+# Kind cluster is automatically created
+kubectl get nodes  # Should show 3 nodes
+kubectl get pods --all-namespaces  # Should show system pods
+```
+
+**❌ Jenkins not accessible?**
+```bash
+# Check Jenkins status
+python3 jenkins-setup.py status
+
+# Check if container is running
+docker ps | grep jenkins
+
+# Access at http://localhost:8080
+# Username: admin, Password: admin
+```
+
+**❌ Python packages missing?**
+```bash
+# All packages are pre-installed
+pip list  # Should show all required packages
+
+# If something is missing, install it
+pip install package-name
+```
+
+### 💡 Pro Tips for Codespaces
+
+1. **🎯 Use the Workshop Launcher** - It guides you through everything step-by-step
+2. **📖 Check WELCOME.md** - Quick reference created in your workspace
+3. **🔧 Use VS Code Extensions** - Pre-installed for optimal experience
+4. **💾 Save Your Work** - Codespaces auto-save, but commit important changes
+5. **👥 Share Your Codespace** - Collaborate with others in real-time
+6. **🔄 Reset if Needed** - Use option 7 in the launcher to clean up
+7. **📱 Works on Any Device** - Phone, tablet, or computer with a browser
+
+### 🆘 Need Help?
+
+- **📚 Documentation**: Check the README files in each directory
+- **🎮 Interactive Help**: Run `python3 .devcontainer/workshop-launcher.py` and choose option 6
+- **🔍 Troubleshooting**: Each phase has detailed troubleshooting guides
+- **💬 Community**: Join discussions in the repository issues
+
+---
+
+## 🏠 **Local Installation (Alternative)**
+
+> **⚠️ Note**: Local installation requires more setup time and can have dependency issues. We recommend using [GitHub Codespaces](#-github-codespaces-recommended) for the best experience.
+
+### 🎯 Quick Start (Local)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/vellankikoti/ci-cd-chaos-workshop.git
+cd ci-cd-chaos-workshop
+
+# 2. Choose your setup method:
+
+# Option A: Universal setup (recommended)
+python3 testcontainers/setup.py
+python3 jenkins/jenkins-setup.py setup
+python3 kubernetes/universal-setup.py
+
+# Option B: Individual setup
+cd testcontainers && python3 setup.py
+cd ../jenkins && python3 jenkins-setup.py setup
+cd ../kubernetes && python3 universal-setup.py
+```
+
+### 📋 Prerequisites Checklist
+
+Before starting, ensure you have these installed:
+
+| Tool | Required Version | Installation Guide |
+|------|------------------|-------------------|
+| **🐍 Python** | 3.10+ | [Python Installation](#1-python-310) |
+| **🐳 Docker** | Latest | [Docker Installation](#2-docker-desktop) |
+| **☸️ Kubernetes** | Any | [Kubernetes Installation](#4-kubernetes-choose-one) |
+| **🤖 Jenkins** | Auto-setup | [Jenkins Setup](#6-jenkins-automated-setup) |
+| **🧪 TestContainers** | Auto-setup | [TestContainers Setup](#3-testcontainers-desktop) |
+
+### 🛠️ **Detailed Installation Guide**
 
 #### **1. Python 3.10+**
 
@@ -802,6 +1102,62 @@ We welcome contributions! Whether it's:
 - ⭐ **Star this repository** if it helps you
 - 🔄 **Fork and contribute** to improve it
 - 💬 **Share your experience** with others
+
+---
+
+## 📚 **Quick Reference**
+
+### **🚀 Start Here**
+```bash
+# Codespaces (Recommended)
+# Click: https://github.com/codespaces/new?repo=vellankikoti/ci-cd-chaos-workshop
+python3 .devcontainer/workshop-launcher.py
+
+# Local Installation
+git clone https://github.com/vellankikoti/ci-cd-chaos-workshop.git
+cd ci-cd-chaos-workshop
+python3 testcontainers/setup.py
+python3 jenkins/jenkins-setup.py setup
+python3 kubernetes/universal-setup.py
+```
+
+### **🎯 Workshop Phases**
+```bash
+# Phase 1: TestContainers
+cd testcontainers && python3 setup.py
+python3 labs/basics/lab1_postgresql_basics.py
+
+# Phase 2: Docker
+cd docker/docker-scenarios
+# Follow individual scenario guides
+
+# Phase 3: Jenkins
+cd jenkins && python3 jenkins-setup.py setup
+# Access: http://localhost:8080 (admin/admin)
+
+# Phase 4: Kubernetes
+cd kubernetes && python3 universal-setup.py
+kubectl get nodes
+```
+
+### **🔧 Common Commands**
+```bash
+# Check status
+python3 jenkins-setup.py status
+kubectl get nodes
+docker ps
+
+# Reset environment
+python3 .devcontainer/workshop-launcher.py  # Choose option 7
+
+# Get help
+python3 .devcontainer/workshop-launcher.py  # Choose option 6
+```
+
+### **🌐 Access Points**
+- **Jenkins**: http://localhost:8080 (admin/admin)
+- **Kubernetes Dashboard**: `kubectl proxy` → http://localhost:8001
+- **Workshop Files**: `/workspaces/ci-cd-chaos-workshop/` (Codespaces)
 
 ---
 
