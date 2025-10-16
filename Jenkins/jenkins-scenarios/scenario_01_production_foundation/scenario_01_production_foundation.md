@@ -28,7 +28,7 @@ python3 jenkins-setup.py setup
 # New Item → Pipeline → Name: "production-foundation"
 # Pipeline script from SCM → Git
 # Repository: https://github.com/vellankikoti/ci-cd-chaos-workshop.git
-# Branch: */docker-test
+# Branch: */main
 # Script Path: Jenkins/jenkins-scenarios/scenario_01_production_foundation/Jenkinsfile
 ```
 
