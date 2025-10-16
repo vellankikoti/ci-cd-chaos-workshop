@@ -762,91 +762,91 @@ EOF
                     }
                     
                     // Deploy Docker container
-                    sh '''
-                        IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-demo-$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
-                        CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
+                    sh """
+                        IMAGE_NAME=\$(cat docker.image 2>/dev/null || echo "jenkins-demo-\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
+                        CONTAINER_NAME=\$(cat docker.container 2>/dev/null || echo "\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
                         
                         echo "║"
                         echo "║  🐳 Deploying Docker container..."
-                        
+
                         # Stop existing container if running
-                        docker stop $CONTAINER_NAME 2>/dev/null || true
-                        docker rm $CONTAINER_NAME 2>/dev/null || true
-                        
+                        docker stop \$CONTAINER_NAME 2>/dev/null || true
+                        docker rm \$CONTAINER_NAME 2>/dev/null || true
+
                         # Clean up any existing containers that might be using ports
                         echo "║     • Cleaning up existing containers..."
                         docker ps -a --filter "name=.*-app" --format "{{.Names}}" | xargs -r docker stop 2>/dev/null || true
                         docker ps -a --filter "name=.*-app" --format "{{.Names}}" | xargs -r docker rm 2>/dev/null || true
-                        
+
                         # Wait a moment for cleanup to complete
                         sleep 2
-                        
+
                         # Find available port for webapp (check both netstat and docker port mappings)
                         echo "║     • Finding available port..."
                         WEBAPP_PORT=8081
                         MAX_ATTEMPTS=50
                         ATTEMPTS=0
-                        
-                        while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+
+                        while [ \$ATTEMPTS -lt \$MAX_ATTEMPTS ]; do
                             # Check if port is in use by netstat
-                            if netstat -tuln 2>/dev/null | grep -q ":$WEBAPP_PORT "; then
-                                echo "║     • Port $WEBAPP_PORT in use by netstat, trying next..."
-                                WEBAPP_PORT=$((WEBAPP_PORT + 1))
-                                ATTEMPTS=$((ATTEMPTS + 1))
+                            if netstat -tuln 2>/dev/null | grep -q ":\$WEBAPP_PORT "; then
+                                echo "║     • Port \$WEBAPP_PORT in use by netstat, trying next..."
+                                WEBAPP_PORT=\$((WEBAPP_PORT + 1))
+                                ATTEMPTS=\$((ATTEMPTS + 1))
                                 continue
                             fi
-                            
+
                             # Check if port is in use by Docker containers
-                            if docker ps --format "{{.Ports}}" | grep -q ":$WEBAPP_PORT->"; then
-                                echo "║     • Port $WEBAPP_PORT in use by Docker, trying next..."
-                                WEBAPP_PORT=$((WEBAPP_PORT + 1))
-                                ATTEMPTS=$((ATTEMPTS + 1))
+                            if docker ps --format "{{.Ports}}" | grep -q ":\$WEBAPP_PORT->"; then
+                                echo "║     • Port \$WEBAPP_PORT in use by Docker, trying next..."
+                                WEBAPP_PORT=\$((WEBAPP_PORT + 1))
+                                ATTEMPTS=\$((ATTEMPTS + 1))
                                 continue
                             fi
-                            
+
                             # Port is available
-                            echo "║     • Found available port: $WEBAPP_PORT"
+                            echo "║     • Found available port: \$WEBAPP_PORT"
                             break
                         done
-                        
-                        if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
-                            echo "║     ❌ Could not find available port after $MAX_ATTEMPTS attempts"
+
+                        if [ \$ATTEMPTS -ge \$MAX_ATTEMPTS ]; then
+                            echo "║     ❌ Could not find available port after \$MAX_ATTEMPTS attempts"
                             exit 1
                         fi
-                        
+
                         # Run new container
-                        echo "║     • Starting container on port $WEBAPP_PORT..."
-                        CONTAINER_ID=$(docker run -d \\
-                            --name $CONTAINER_NAME \\
-                            -p $WEBAPP_PORT:8080 \\
+                        echo "║     • Starting container on port \$WEBAPP_PORT..."
+                        CONTAINER_ID=\$(docker run -d \\
+                            --name \$CONTAINER_NAME \\
+                            -p \$WEBAPP_PORT:8080 \\
                             -e ENVIRONMENT=${params.ENVIRONMENT} \\
                             -e VERSION=${params.VERSION} \\
                             -e FEATURES=${params.FEATURES} \\
-                            $IMAGE_NAME) || {
+                            \$IMAGE_NAME) || {
                             echo "║     ❌ Docker container deployment failed"
-                            echo "║     • Check if port $WEBAPP_PORT is available"
-                            echo "║     • Check if image $IMAGE_NAME exists"
+                            echo "║     • Check if port \$WEBAPP_PORT is available"
+                            echo "║     • Check if image \$IMAGE_NAME exists"
                             exit 1
                         }
-                        
+
                         # Wait for container to start
                         echo "║     • Waiting for container to start..."
                         sleep 3
-                        
+
                         # Check if container is running
-                        if ! docker ps | grep -q $CONTAINER_NAME; then
+                        if ! docker ps | grep -q \$CONTAINER_NAME; then
                             echo "║     ❌ Container failed to start"
                             echo "║     • Container logs:"
-                            docker logs $CONTAINER_NAME 2>/dev/null || true
+                            docker logs \$CONTAINER_NAME 2>/dev/null || true
                             exit 1
                         fi
-                        
+
                         # Save port info
-                        echo $WEBAPP_PORT > webapp.port
-                        
-                        echo "║     ✅ Container deployed: $CONTAINER_NAME"
-                        echo "║     ✅ Access: http://localhost:$WEBAPP_PORT"
-                    '''
+                        echo \$WEBAPP_PORT > webapp.port
+
+                        echo "║     ✅ Container deployed: \$CONTAINER_NAME"
+                        echo "║     ✅ Access: http://localhost:\$WEBAPP_PORT"
+                    """
                     
                     // Feature-specific deployment info
                     echo "║"
@@ -869,14 +869,14 @@ EOF
                     // System state after deployment
                     echo "║"
                     echo "║  📊 Post-Deployment State:"
-                    sh '''
-                        RUNNING_PROCS=$(ps aux | wc -l)
-                        CONTAINER_STATUS=$(docker ps --filter "name=$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app" --format "table {{.Status}}" | tail -1)
-                        echo "║     • Running processes: $RUNNING_PROCS"
-                        echo "║     • Container status: $CONTAINER_STATUS"
+                    sh """
+                        RUNNING_PROCS=\$(ps aux | wc -l)
+                        CONTAINER_STATUS=\$(docker ps --filter "name=\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app" --format "table {{.Status}}" | tail -1)
+                        echo "║     • Running processes: \$RUNNING_PROCS"
+                        echo "║     • Container status: \$CONTAINER_STATUS"
                         echo "║     • Health check: ✅ PASSED"
                         echo "║     • Monitoring: Active"
-                    '''
+                    """
                     
                     echo "║"
                     echo "║  ✅ Deployment to ${params.ENVIRONMENT} completed successfully!"
@@ -938,31 +938,31 @@ EOF
                     '''
                     
                     // Get server info with correct external URL
-                    sh '''
-                        HOSTNAME=$(hostname)
-                        PORT=$(cat webapp/webapp.port 2>/dev/null || echo "8081")
-                        
+                    sh """
+                        HOSTNAME=\$(hostname)
+                        PORT=\$(cat webapp/webapp.port 2>/dev/null || echo "8081")
+
                         # Get Docker host IP
-                        DOCKER_HOST_IP=$(ip route | grep default | awk '{print $3}' | head -1)
-                        CONTAINER_IP=$(hostname -I | awk '{print $1}')
-                        
+                        DOCKER_HOST_IP=\$(ip route | grep default | awk '{print \$3}' | head -1)
+                        CONTAINER_IP=\$(hostname -I | awk '{print \$1}')
+
                         echo "║"
                         echo "║  📊 Web Application Info:"
-                        echo "║     • Port: $PORT (bound to 0.0.0.0)"
-                        echo "║     • Container IP: $CONTAINER_IP"
-                        echo "║     • Docker Host IP: $DOCKER_HOST_IP"
-                        echo "║     • Hostname: $HOSTNAME"
+                        echo "║     • Port: \$PORT (bound to 0.0.0.0)"
+                        echo "║     • Container IP: \$CONTAINER_IP"
+                        echo "║     • Docker Host IP: \$DOCKER_HOST_IP"
+                        echo "║     • Hostname: \$HOSTNAME"
                         echo "║     • Environment: ${params.ENVIRONMENT}"
                         echo "║     • Features: ${params.FEATURES}"
                         echo "║     • Version: ${params.VERSION}"
                         echo "║"
                         echo "║  🌐 Access Instructions:"
-                        echo "║     • Try: http://localhost:$PORT"
-                        echo "║     • Try: http://$DOCKER_HOST_IP:$PORT"
-                        echo "║     • Try: http://$CONTAINER_IP:$PORT"
-                        echo "║     • Port $PORT is available (avoiding Jenkins port 8080)"
+                        echo "║     • Try: http://localhost:\$PORT"
+                        echo "║     • Try: http://\$DOCKER_HOST_IP:\$PORT"
+                        echo "║     • Try: http://\$CONTAINER_IP:\$PORT"
+                        echo "║     • Port \$PORT is available (avoiding Jenkins port 8080)"
                         echo "║     • Server bound to 0.0.0.0 for Docker access"
-                    '''
+                    """
                     
                     echo "║"
                     echo "║  ✅ Web application deployed successfully!"
@@ -1100,20 +1100,20 @@ EOF
             echo "║  🔧 Monitoring: Active and configured"
             echo "║"
             echo "║  🌐 WEB APPLICATION ACCESS:"
-            sh '''
-                CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
-                IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-demo-$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
-                WEBAPP_PORT=$(cat webapp.port 2>/dev/null || echo "8081")
-                
-                echo "║     • Docker Container: $CONTAINER_NAME"
-                echo "║     • Docker Image: $IMAGE_NAME"
-                echo "║     • Primary URL: http://localhost:$WEBAPP_PORT"
-                echo "║     • API Status: http://localhost:$WEBAPP_PORT/api/status"
+            sh """
+                CONTAINER_NAME=\$(cat docker.container 2>/dev/null || echo "\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
+                IMAGE_NAME=\$(cat docker.image 2>/dev/null || echo "jenkins-demo-\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
+                WEBAPP_PORT=\$(cat webapp.port 2>/dev/null || echo "8081")
+
+                echo "║     • Docker Container: \$CONTAINER_NAME"
+                echo "║     • Docker Image: \$IMAGE_NAME"
+                echo "║     • Primary URL: http://localhost:\$WEBAPP_PORT"
+                echo "║     • API Status: http://localhost:\$WEBAPP_PORT/api/status"
                 echo "║     • Environment: ${params.ENVIRONMENT}"
                 echo "║     • Features: ${params.FEATURES}"
                 echo "║     • Version: ${params.VERSION}"
                 echo "║     • Status: ✅ RUNNING"
-            '''
+            """
             echo "╚══════════════════════════════════════════════════════════════════════════════╝"
             echo ""
         }
