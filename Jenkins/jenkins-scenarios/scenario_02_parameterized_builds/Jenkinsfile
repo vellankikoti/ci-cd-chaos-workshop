@@ -524,10 +524,10 @@ PYEOF
                     
                     // Create Dockerfile based on parameters
                     sh '''
-                        echo "║     • Creating Dockerfile for ${ENVIRONMENT} + ${FEATURES}..."
+                        echo "║     • Creating Dockerfile for ${params.ENVIRONMENT} + ${params.FEATURES}..."
                         
                         # Environment-specific base image
-                        case "${ENVIRONMENT}" in
+                        case "${params.ENVIRONMENT}" in
                             "Development")
                                 BASE_IMAGE="python:3.11-slim"
                                 EXPOSE_PORT="8080"
@@ -555,7 +555,7 @@ PYEOF
                         esac
                         
                         # Feature-specific packages
-                        case "${FEATURES}" in
+                        case "${params.FEATURES}" in
                             "Basic")
                                 EXTRA_PACKAGES=""
                                 FEATURE_FLAGS="--basic"
@@ -598,10 +598,10 @@ PYEOF
 FROM ${BASE_IMAGE}
 
 # Set environment variables
-ENV ENVIRONMENT=${ENVIRONMENT}
-ENV VERSION=${VERSION}
-ENV FEATURES=${FEATURES}
-ENV RUN_TESTS=${RUN_TESTS}
+ENV ENVIRONMENT=${params.ENVIRONMENT}
+ENV VERSION=${params.VERSION}
+ENV FEATURES=${params.FEATURES}
+ENV RUN_TESTS=${params.RUN_TESTS}
 
 # Install system packages
 RUN ${PACKAGE_INSTALL_CMD}
@@ -629,10 +629,10 @@ class ParameterizedHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             
             status = {
-                "environment": "${ENVIRONMENT}",
-                "version": "${VERSION}",
-                "features": "${FEATURES}",
-                "run_tests": ${RUN_TESTS},
+                "environment": "${params.ENVIRONMENT}",
+                "version": "${params.VERSION}",
+                "features": "${params.FEATURES}",
+                "run_tests": ${params.RUN_TESTS},
                 "timestamp": datetime.now().isoformat(),
                 "uptime": time.time(),
                 "status": "running"
@@ -644,7 +644,7 @@ class ParameterizedHandler(SimpleHTTPRequestHandler):
 if __name__ == "__main__":
     os.chdir('/app/webapp')
     server = HTTPServer(('0.0.0.0', ${EXPOSE_PORT}), ParameterizedHandler)
-    print(f"Starting server on port ${EXPOSE_PORT} for ${ENVIRONMENT} environment...")
+    print(f"Starting server on port ${EXPOSE_PORT} for ${params.ENVIRONMENT} environment...")
     server.serve_forever()
 PYEOF
 
@@ -665,40 +665,43 @@ EOF
                     '''
                     
                     // Build Docker image
-                    sh '''
+                    sh """
                         echo "║     • Building Docker image..."
                         
-                        IMAGE_NAME="jenkins-demo-$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${VERSION}"
-                        CONTAINER_NAME="$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app"
+                        IMAGE_NAME="jenkins-demo-\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}"
+                        CONTAINER_NAME="\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app"
+                        
+                        echo "║     • Image name: \$IMAGE_NAME"
+                        echo "║     • Container name: \$CONTAINER_NAME"
                         
                         # Build the image
-                        docker build -t $IMAGE_NAME . || {
+                        docker build -t \$IMAGE_NAME . || {
                             echo "║     ❌ Docker build failed"
                             exit 1
                         }
                         
-                        echo "║     ✅ Docker image built: $IMAGE_NAME"
+                        echo "║     ✅ Docker image built: \$IMAGE_NAME"
                         
                         # Show image info
-                        docker images | grep $IMAGE_NAME
+                        docker images | grep \$IMAGE_NAME
                         
                         # Save image info
-                        echo "$IMAGE_NAME" > docker.image
-                        echo "$CONTAINER_NAME" > docker.container
-                    '''
+                        echo "\$IMAGE_NAME" > docker.image
+                        echo "\$CONTAINER_NAME" > docker.container
+                    """
                     
                     echo "║"
                     echo "║  🎯 Docker Image Details:"
-                    sh '''
-                        IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-demo-$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${VERSION}")
-                        CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
+                    sh """
+                        IMAGE_NAME=\$(cat docker.image 2>/dev/null || echo "jenkins-demo-\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
+                        CONTAINER_NAME=\$(cat docker.container 2>/dev/null || echo "\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
                         
-                        echo "║     • Image: $IMAGE_NAME"
-                        echo "║     • Container: $CONTAINER_NAME"
-                        echo "║     • Environment: ${ENVIRONMENT}"
-                        echo "║     • Features: ${FEATURES}"
-                        echo "║     • Version: ${VERSION}"
-                    '''
+                        echo "║     • Image: \$IMAGE_NAME"
+                        echo "║     • Container: \$CONTAINER_NAME"
+                        echo "║     • Environment: ${params.ENVIRONMENT}"
+                        echo "║     • Features: ${params.FEATURES}"
+                        echo "║     • Version: ${params.VERSION}"
+                    """
                     
                     echo "║"
                     echo "║  ✅ Docker image creation completed successfully!"
@@ -726,9 +729,9 @@ EOF
                         HOSTNAME=$(hostname)
                         IP_ADDRESS=$(hostname -I | awk '{print $1}')
                         
-                        echo "║     • Target: ${ENVIRONMENT}"
-                        echo "║     • Version: ${VERSION}"
-                        echo "║     • Features: ${FEATURES}"
+                        echo "║     • Target: ${params.ENVIRONMENT}"
+                        echo "║     • Version: ${params.VERSION}"
+                        echo "║     • Features: ${params.FEATURES}"
                         echo "║     • Deploy time: $DEPLOY_TIME"
                         echo "║     • Deploy user: $DEPLOY_USER"
                         echo "║     • Target host: $HOSTNAME"
@@ -758,8 +761,8 @@ EOF
                     
                     // Deploy Docker container
                     sh '''
-                        IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-demo-$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${VERSION}")
-                        CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
+                        IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-demo-$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
+                        CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
                         
                         echo "║"
                         echo "║  🐳 Deploying Docker container..."
@@ -814,9 +817,9 @@ EOF
                         CONTAINER_ID=$(docker run -d \\
                             --name $CONTAINER_NAME \\
                             -p $WEBAPP_PORT:8080 \\
-                            -e ENVIRONMENT=${ENVIRONMENT} \\
-                            -e VERSION=${VERSION} \\
-                            -e FEATURES=${FEATURES} \\
+                            -e ENVIRONMENT=${params.ENVIRONMENT} \\
+                            -e VERSION=${params.VERSION} \\
+                            -e FEATURES=${params.FEATURES} \\
                             $IMAGE_NAME) || {
                             echo "║     ❌ Docker container deployment failed"
                             echo "║     • Check if port $WEBAPP_PORT is available"
@@ -866,7 +869,7 @@ EOF
                     echo "║  📊 Post-Deployment State:"
                     sh '''
                         RUNNING_PROCS=$(ps aux | wc -l)
-                        CONTAINER_STATUS=$(docker ps --filter "name=$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app" --format "table {{.Status}}" | tail -1)
+                        CONTAINER_STATUS=$(docker ps --filter "name=$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app" --format "table {{.Status}}" | tail -1)
                         echo "║     • Running processes: $RUNNING_PROCS"
                         echo "║     • Container status: $CONTAINER_STATUS"
                         echo "║     • Health check: ✅ PASSED"
@@ -947,9 +950,9 @@ EOF
                         echo "║     • Container IP: $CONTAINER_IP"
                         echo "║     • Docker Host IP: $DOCKER_HOST_IP"
                         echo "║     • Hostname: $HOSTNAME"
-                        echo "║     • Environment: ${ENVIRONMENT}"
-                        echo "║     • Features: ${FEATURES}"
-                        echo "║     • Version: ${VERSION}"
+                        echo "║     • Environment: ${params.ENVIRONMENT}"
+                        echo "║     • Features: ${params.FEATURES}"
+                        echo "║     • Version: ${params.VERSION}"
                         echo "║"
                         echo "║  🌐 Access Instructions:"
                         echo "║     • Try: http://localhost:$PORT"
@@ -1096,17 +1099,17 @@ EOF
             echo "║"
             echo "║  🌐 WEB APPLICATION ACCESS:"
             sh '''
-                CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
-                IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-demo-$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${VERSION}")
+                CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-app")
+                IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-demo-$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
                 WEBAPP_PORT=$(cat webapp.port 2>/dev/null || echo "8081")
                 
                 echo "║     • Docker Container: $CONTAINER_NAME"
                 echo "║     • Docker Image: $IMAGE_NAME"
                 echo "║     • Primary URL: http://localhost:$WEBAPP_PORT"
                 echo "║     • API Status: http://localhost:$WEBAPP_PORT/api/status"
-                echo "║     • Environment: ${ENVIRONMENT}"
-                echo "║     • Features: ${FEATURES}"
-                echo "║     • Version: ${VERSION}"
+                echo "║     • Environment: ${params.ENVIRONMENT}"
+                echo "║     • Features: ${params.FEATURES}"
+                echo "║     • Version: ${params.VERSION}"
                 echo "║     • Status: ✅ RUNNING"
             '''
             echo "╚══════════════════════════════════════════════════════════════════════════════╝"
