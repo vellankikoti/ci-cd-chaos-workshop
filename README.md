@@ -260,9 +260,15 @@ docker ps         # Should show running containers
 
 **❌ Kubernetes issues?**
 ```bash
-# Kind cluster is automatically created
-kubectl get nodes  # Should show 3 nodes
+# Check if Kind cluster is running
+kind get clusters  # Should show chaos-workshop
+
+# If Kind failed, check if any cluster is available
+kubectl get nodes  # Should show nodes
 kubectl get pods --all-namespaces  # Should show system pods
+
+# If no cluster available, this is expected in some Codespaces environments
+# Kubernetes scenarios will work with cloud clusters or local Docker Desktop
 ```
 
 **❌ Jenkins not accessible?**
@@ -284,6 +290,34 @@ pip list  # Should show all required packages
 
 # If something is missing, install it
 pip install package-name
+```
+
+**❌ Docker permission denied error?**
+```bash
+# This is a known issue in some Codespaces environments
+# The setup will continue and most scenarios will still work
+
+# Check if Docker is working despite the error
+docker --version  # Should work
+docker ps         # Should work
+
+# If you see "permission denied" during setup, it's expected
+# The workshop will still function for most scenarios
+```
+
+**❌ Kind cluster creation failed?**
+```bash
+# This is expected in some Codespaces environments due to Docker-in-Docker limitations
+# The workshop will use alternative approaches
+
+# Check what's available
+kubectl config get-contexts  # See available contexts
+kubectl get nodes            # Check if any cluster is accessible
+
+# For full Kubernetes functionality, use:
+# 1. Local Docker Desktop installation
+# 2. Cloud Kubernetes cluster (GKE, EKS, AKS)
+# 3. The workshop will guide you through alternatives
 ```
 
 ### 💡 Pro Tips for Codespaces
