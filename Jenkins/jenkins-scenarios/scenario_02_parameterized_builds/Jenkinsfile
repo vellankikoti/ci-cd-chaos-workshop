@@ -619,42 +619,38 @@ WORKDIR /app
 COPY webapp/ ./webapp/
 
 # Create app.py based on parameters
-RUN cat > app.py << 'PYEOF'
-#!/usr/bin/env python3
-import os
-import time
-import json
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from datetime import datetime
-
-class ParameterizedHandler(SimpleHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == "/api/status":
-            self.send_response(200)
-            self.send_header("Content-type", "application/json")
-            self.end_headers()
-
-            status = {
-                "environment": os.environ.get("ENVIRONMENT", "unknown"),
-                "version": os.environ.get("VERSION", "unknown"),
-                "features": os.environ.get("FEATURES", "unknown"),
-                "run_tests": os.environ.get("RUN_TESTS", "false"),
-                "timestamp": datetime.now().isoformat(),
-                "uptime": time.time(),
-                "status": "running"
-            }
-            self.wfile.write(json.dumps(status).encode())
-        else:
-            super().do_GET()
-
-if __name__ == "__main__":
-    os.chdir("/app/webapp")
-    server = HTTPServer(("0.0.0.0", 8080), ParameterizedHandler)
-    print(f"Starting server on port 8080 for {os.environ.get('ENVIRONMENT', 'unknown')} environment...")
-    server.serve_forever()
-PYEOF
-
-RUN chmod +x app.py
+RUN echo '#!/usr/bin/env python3' > app.py && \\
+    echo 'import os' >> app.py && \\
+    echo 'import time' >> app.py && \\
+    echo 'import json' >> app.py && \\
+    echo 'from http.server import HTTPServer, SimpleHTTPRequestHandler' >> app.py && \\
+    echo 'from datetime import datetime' >> app.py && \\
+    echo '' >> app.py && \\
+    echo 'class ParameterizedHandler(SimpleHTTPRequestHandler):' >> app.py && \\
+    echo '    def do_GET(self):' >> app.py && \\
+    echo '        if self.path == "/api/status":' >> app.py && \\
+    echo '            self.send_response(200)' >> app.py && \\
+    echo '            self.send_header("Content-type", "application/json")' >> app.py && \\
+    echo '            self.end_headers()' >> app.py && \\
+    echo '            status = {' >> app.py && \\
+    echo '                "environment": os.environ.get("ENVIRONMENT", "unknown"),' >> app.py && \\
+    echo '                "version": os.environ.get("VERSION", "unknown"),' >> app.py && \\
+    echo '                "features": os.environ.get("FEATURES", "unknown"),' >> app.py && \\
+    echo '                "run_tests": os.environ.get("RUN_TESTS", "false"),' >> app.py && \\
+    echo '                "timestamp": datetime.now().isoformat(),' >> app.py && \\
+    echo '                "uptime": time.time(),' >> app.py && \\
+    echo '                "status": "running"' >> app.py && \\
+    echo '            }' >> app.py && \\
+    echo '            self.wfile.write(json.dumps(status).encode())' >> app.py && \\
+    echo '        else:' >> app.py && \\
+    echo '            super().do_GET()' >> app.py && \\
+    echo '' >> app.py && \\
+    echo 'if __name__ == "__main__":' >> app.py && \\
+    echo '    os.chdir("/app/webapp")' >> app.py && \\
+    echo '    server = HTTPServer(("0.0.0.0", 8080), ParameterizedHandler)' >> app.py && \\
+    echo '    print(f"Starting server on port 8080 for {os.environ.get('"'ENVIRONMENT'"', '"'unknown'"')} environment...")' >> app.py && \\
+    echo '    server.serve_forever()' >> app.py && \\
+    chmod +x app.py
 
 # Expose port (container internal port - always 8080)
 EXPOSE 8080
