@@ -849,11 +849,11 @@ PYEOF
                     echo "╠══════════════════════════════════════════════════════════════════════════════╣"
                     echo "║  🏗️  Building advanced Docker image for ${params.ENVIRONMENT} environment..."
                     
-                    sh '''
-                        echo "║     • Creating advanced Dockerfile for ${ENVIRONMENT} + ${FEATURES}..."
-                        
+                    sh """
+                        echo "║     • Creating advanced Dockerfile for ${params.ENVIRONMENT} + ${params.FEATURES}..."
+
                         # Environment-specific base image and package manager
-                        case "${ENVIRONMENT}" in
+                        case "${params.ENVIRONMENT}" in
                             "Development")
                                 BASE_IMAGE="python:3.11-slim"
                                 EXPOSE_PORT="8080"
@@ -881,7 +881,7 @@ PYEOF
                         esac
                         
                         # Feature-specific packages
-                        case "${FEATURES}" in
+                        case "${params.FEATURES}" in
                             "Basic")
                                 EXTRA_PACKAGES=""
                                 FEATURE_FLAGS="--basic"
@@ -905,35 +905,35 @@ PYEOF
                         esac
                         
                         # Handle empty packages and cleanup
-                        if [ -z "${EXTRA_PACKAGES}" ]; then
-                            if [ -n "${PACKAGE_CLEANUP}" ]; then
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE} && ${PACKAGE_CLEANUP}"
+                        if [ -z "\${EXTRA_PACKAGES}" ]; then
+                            if [ -n "\${PACKAGE_CLEANUP}" ]; then
+                                PACKAGE_INSTALL_CMD="\${PACKAGE_UPDATE} && \${PACKAGE_CLEANUP}"
                             else
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE}"
+                                PACKAGE_INSTALL_CMD="\${PACKAGE_UPDATE}"
                             fi
                         else
-                            if [ -n "${PACKAGE_CLEANUP}" ]; then
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE} && ${PACKAGE_INSTALL} ${EXTRA_PACKAGES} && ${PACKAGE_CLEANUP}"
+                            if [ -n "\${PACKAGE_CLEANUP}" ]; then
+                                PACKAGE_INSTALL_CMD="\${PACKAGE_UPDATE} && \${PACKAGE_INSTALL} \${EXTRA_PACKAGES} && \${PACKAGE_CLEANUP}"
                             else
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE} && ${PACKAGE_INSTALL} ${EXTRA_PACKAGES}"
+                                PACKAGE_INSTALL_CMD="\${PACKAGE_UPDATE} && \${PACKAGE_INSTALL} \${EXTRA_PACKAGES}"
                             fi
                         fi
-                        
+
                         # Create advanced Dockerfile
                         cat > Dockerfile << EOF
-FROM ${BASE_IMAGE}
+FROM \${BASE_IMAGE}
 
 # Set environment variables
-ENV ENVIRONMENT=${ENVIRONMENT}
-ENV VERSION=${VERSION}
-ENV FEATURES=${FEATURES}
-ENV RUN_TESTS=${RUN_TESTS}
-ENV SECURITY_SCAN=${SECURITY_SCAN}
-ENV PERFORMANCE_TEST=${PERFORMANCE_TEST}
-ENV DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY}
+ENV ENVIRONMENT=${params.ENVIRONMENT}
+ENV VERSION=${params.VERSION}
+ENV FEATURES=${params.FEATURES}
+ENV RUN_TESTS=${params.RUN_TESTS}
+ENV SECURITY_SCAN=${params.SECURITY_SCAN}
+ENV PERFORMANCE_TEST=${params.PERFORMANCE_TEST}
+ENV DEPLOYMENT_STRATEGY=${params.DEPLOYMENT_STRATEGY}
 
 # Install system packages
-RUN ${PACKAGE_INSTALL_CMD}
+RUN \${PACKAGE_INSTALL_CMD}
 
 # Create app directory
 WORKDIR /app
@@ -1065,43 +1065,43 @@ CMD ["python3", "app.py"]
 EOF
                         
                         echo "║     • Advanced Dockerfile created successfully"
-                    '''
+                    """
                     
-                    sh '''
+                    sh """
                         echo "║     • Building advanced Docker image..."
-                        
-                        IMAGE_NAME="jenkins-powerhouse-$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${VERSION}"
-                        CONTAINER_NAME="$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-powerhouse"
-                        
+
+                        IMAGE_NAME="jenkins-powerhouse-\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}"
+                        CONTAINER_NAME="\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-powerhouse"
+
                         # Build the image
-                        docker build -t $IMAGE_NAME . || {
+                        docker build -t \$IMAGE_NAME . || {
                             echo "║     ❌ Docker build failed"
                             exit 1
                         }
-                        
-                        echo "║     ✅ Advanced Docker image built: $IMAGE_NAME"
-                        
+
+                        echo "║     ✅ Advanced Docker image built: \$IMAGE_NAME"
+
                         # Show image info
-                        docker images | grep $IMAGE_NAME
-                        
+                        docker images | grep \$IMAGE_NAME
+
                         # Save image info
-                        echo "$IMAGE_NAME" > docker.image
-                        echo "$CONTAINER_NAME" > docker.container
-                    '''
+                        echo "\$IMAGE_NAME" > docker.image
+                        echo "\$CONTAINER_NAME" > docker.container
+                    """
                     
                     echo "║"
                     echo "║  🎯 Advanced Docker Image Details:"
-                    sh '''
-                        IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-powerhouse-$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${VERSION}")
-                        CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-powerhouse")
-                        
-                        echo "║     • Image: $IMAGE_NAME"
-                        echo "║     • Container: $CONTAINER_NAME"
-                        echo "║     • Environment: ${ENVIRONMENT}"
-                        echo "║     • Features: ${FEATURES}"
-                        echo "║     • Version: ${VERSION}"
-                        echo "║     • Strategy: ${DEPLOYMENT_STRATEGY}"
-                    '''
+                    sh """
+                        IMAGE_NAME=\$(cat docker.image 2>/dev/null || echo "jenkins-powerhouse-\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
+                        CONTAINER_NAME=\$(cat docker.container 2>/dev/null || echo "\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-powerhouse")
+
+                        echo "║     • Image: \$IMAGE_NAME"
+                        echo "║     • Container: \$CONTAINER_NAME"
+                        echo "║     • Environment: ${params.ENVIRONMENT}"
+                        echo "║     • Features: ${params.FEATURES}"
+                        echo "║     • Version: ${params.VERSION}"
+                        echo "║     • Strategy: ${params.DEPLOYMENT_STRATEGY}"
+                    """
                     
                     echo "║"
                     echo "║  ✅ Advanced Docker image creation completed successfully!"
@@ -1161,94 +1161,94 @@ EOF
                             break
                     }
                     
-                    sh '''
-                        IMAGE_NAME=$(cat docker.image 2>/dev/null || echo "jenkins-powerhouse-$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${VERSION}")
-                        CONTAINER_NAME=$(cat docker.container 2>/dev/null || echo "$(echo ${ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-powerhouse")
-                        
+                    sh """
+                        IMAGE_NAME=\$(cat docker.image 2>/dev/null || echo "jenkins-powerhouse-\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-${params.VERSION}")
+                        CONTAINER_NAME=\$(cat docker.container 2>/dev/null || echo "\$(echo ${params.ENVIRONMENT} | tr '[:upper:]' '[:lower:]')-powerhouse")
+
                         echo "║"
                         echo "║  🐳 Deploying advanced Docker container..."
-                        
+
                         # Stop existing container if running
-                        docker stop $CONTAINER_NAME 2>/dev/null || true
-                        docker rm $CONTAINER_NAME 2>/dev/null || true
-                        
+                        docker stop \$CONTAINER_NAME 2>/dev/null || true
+                        docker rm \$CONTAINER_NAME 2>/dev/null || true
+
                         # Clean up any existing containers that might be using ports
                         echo "║     • Cleaning up existing containers..."
                         docker ps -a --filter "name=.*-powerhouse" --format "{{.Names}}" | xargs -r docker stop 2>/dev/null || true
                         docker ps -a --filter "name=.*-powerhouse" --format "{{.Names}}" | xargs -r docker rm 2>/dev/null || true
-                        
+
                         # Wait a moment for cleanup to complete
                         sleep 2
-                        
+
                         # Find available port for webapp (check both netstat and docker port mappings)
                         echo "║     • Finding available port..."
                         WEBAPP_PORT=8081
                         MAX_ATTEMPTS=50
                         ATTEMPTS=0
-                        
-                        while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+
+                        while [ \$ATTEMPTS -lt \$MAX_ATTEMPTS ]; do
                             # Check if port is in use by netstat
-                            if netstat -tuln 2>/dev/null | grep -q ":$WEBAPP_PORT "; then
-                                echo "║     • Port $WEBAPP_PORT in use by netstat, trying next..."
-                                WEBAPP_PORT=$((WEBAPP_PORT + 1))
-                                ATTEMPTS=$((ATTEMPTS + 1))
+                            if netstat -tuln 2>/dev/null | grep -q ":\$WEBAPP_PORT "; then
+                                echo "║     • Port \$WEBAPP_PORT in use by netstat, trying next..."
+                                WEBAPP_PORT=\$((WEBAPP_PORT + 1))
+                                ATTEMPTS=\$((ATTEMPTS + 1))
                                 continue
                             fi
-                            
+
                             # Check if port is in use by Docker containers
-                            if docker ps --format "{{.Ports}}" | grep -q ":$WEBAPP_PORT->"; then
-                                echo "║     • Port $WEBAPP_PORT in use by Docker, trying next..."
-                                WEBAPP_PORT=$((WEBAPP_PORT + 1))
-                                ATTEMPTS=$((ATTEMPTS + 1))
+                            if docker ps --format "{{.Ports}}" | grep -q ":\$WEBAPP_PORT->"; then
+                                echo "║     • Port \$WEBAPP_PORT in use by Docker, trying next..."
+                                WEBAPP_PORT=\$((WEBAPP_PORT + 1))
+                                ATTEMPTS=\$((ATTEMPTS + 1))
                                 continue
                             fi
-                            
+
                             # Port is available
-                            echo "║     • Found available port: $WEBAPP_PORT"
+                            echo "║     • Found available port: \$WEBAPP_PORT"
                             break
                         done
-                        
-                        if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
-                            echo "║     ❌ Could not find available port after $MAX_ATTEMPTS attempts"
+
+                        if [ \$ATTEMPTS -ge \$MAX_ATTEMPTS ]; then
+                            echo "║     ❌ Could not find available port after \$MAX_ATTEMPTS attempts"
                             exit 1
                         fi
-                        
+
                         # Run new container
-                        echo "║     • Starting advanced container on port $WEBAPP_PORT..."
-                        CONTAINER_ID=$(docker run -d \\
-                            --name $CONTAINER_NAME \\
-                            -p $WEBAPP_PORT:8080 \\
-                            -e ENVIRONMENT=${ENVIRONMENT} \\
-                            -e VERSION=${VERSION} \\
-                            -e FEATURES=${FEATURES} \\
-                            -e RUN_TESTS=${RUN_TESTS} \\
-                            -e SECURITY_SCAN=${SECURITY_SCAN} \\
-                            -e PERFORMANCE_TEST=${PERFORMANCE_TEST} \\
-                            -e DEPLOYMENT_STRATEGY=${DEPLOYMENT_STRATEGY} \\
-                            $IMAGE_NAME) || {
+                        echo "║     • Starting advanced container on port \$WEBAPP_PORT..."
+                        CONTAINER_ID=\$(docker run -d \\
+                            --name \$CONTAINER_NAME \\
+                            -p \$WEBAPP_PORT:8080 \\
+                            -e ENVIRONMENT=${params.ENVIRONMENT} \\
+                            -e VERSION=${params.VERSION} \\
+                            -e FEATURES=${params.FEATURES} \\
+                            -e RUN_TESTS=${params.RUN_TESTS} \\
+                            -e SECURITY_SCAN=${params.SECURITY_SCAN} \\
+                            -e PERFORMANCE_TEST=${params.PERFORMANCE_TEST} \\
+                            -e DEPLOYMENT_STRATEGY=${params.DEPLOYMENT_STRATEGY} \\
+                            \$IMAGE_NAME) || {
                             echo "║     ❌ Docker container deployment failed"
-                            echo "║     • Check if port $WEBAPP_PORT is available"
-                            echo "║     • Check if image $IMAGE_NAME exists"
+                            echo "║     • Check if port \$WEBAPP_PORT is available"
+                            echo "║     • Check if image \$IMAGE_NAME exists"
                             exit 1
                         }
-                        
+
                         # Wait for container to start
                         echo "║     • Waiting for container to start..."
                         sleep 3
-                        
+
                         # Check if container is running
-                        if ! docker ps | grep -q $CONTAINER_NAME; then
+                        if ! docker ps | grep -q \$CONTAINER_NAME; then
                             echo "║     ❌ Container failed to start"
                             echo "║     • Container logs:"
-                            docker logs $CONTAINER_NAME 2>/dev/null || true
+                            docker logs \$CONTAINER_NAME 2>/dev/null || true
                             exit 1
                         fi
-                        
+
                         # Save port info
-                        echo $WEBAPP_PORT > webapp.port
-                        
-                        echo "║     ✅ Advanced container deployed: $CONTAINER_NAME"
-                    '''
+                        echo \$WEBAPP_PORT > webapp.port
+
+                        echo "║     ✅ Advanced container deployed: \$CONTAINER_NAME"
+                    """
                     
                     echo "║"
                     echo "║  🌐 Access Information:"

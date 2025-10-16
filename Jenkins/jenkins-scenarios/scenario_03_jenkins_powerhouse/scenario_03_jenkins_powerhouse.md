@@ -54,7 +54,7 @@ scenario_03_jenkins_powerhouse/
    - Definition: Pipeline script from SCM
    - SCM: Git
    - Repository URL: `https://github.com/vellankikoti/ci-cd-chaos-workshop`
-   - Branch: `*/docker-test`
+   - Branch: `*/main`
    - Script Path: `Jenkins/jenkins-scenarios/scenario_03_jenkins_powerhouse/Jenkinsfile`
 
 ### Step 2: Configure Parameters (1 minute)
