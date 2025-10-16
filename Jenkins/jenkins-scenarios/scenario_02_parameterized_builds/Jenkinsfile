@@ -725,20 +725,20 @@ EOF
                     echo "║  🎯 Deploying to ${params.ENVIRONMENT} environment..."
                     
                     // Deployment details
-                    sh '''
-                        DEPLOY_TIME=$(date)
-                        DEPLOY_USER=$(whoami)
-                        HOSTNAME=$(hostname)
-                        IP_ADDRESS=$(hostname -I | awk '{print $1}')
-                        
+                    sh """
+                        DEPLOY_TIME=\$(date)
+                        DEPLOY_USER=\$(whoami)
+                        HOSTNAME=\$(hostname)
+                        IP_ADDRESS=\$(hostname -I | awk '{print \$1}')
+
                         echo "║     • Target: ${params.ENVIRONMENT}"
                         echo "║     • Version: ${params.VERSION}"
                         echo "║     • Features: ${params.FEATURES}"
-                        echo "║     • Deploy time: $DEPLOY_TIME"
-                        echo "║     • Deploy user: $DEPLOY_USER"
-                        echo "║     • Target host: $HOSTNAME"
-                        echo "║     • IP address: $IP_ADDRESS"
-                    '''
+                        echo "║     • Deploy time: \$DEPLOY_TIME"
+                        echo "║     • Deploy user: \$DEPLOY_USER"
+                        echo "║     • Target host: \$HOSTNAME"
+                        echo "║     • IP address: \$IP_ADDRESS"
+                    """
                     
                     // Environment-specific deployment steps
                     echo "║"
