@@ -74,15 +74,38 @@ git config --global user.name "Workshop User"
 git config --global user.email "workshop@example.com"
 git config --global init.defaultBranch main
 
-# Create a Kind cluster for Kubernetes scenarios
+# Create a Kind cluster for Kubernetes scenarios (with Docker permission handling)
 echo "☸️ Creating Kind cluster..."
-kind create cluster --name chaos-workshop --config .devcontainer/kind-config.yaml
 
-# Set kubectl context
-kubectl config use-context kind-chaos-workshop
+# Fix Docker socket permissions for Codespaces
+if [ -S /var/run/docker.sock ]; then
+    echo "🔧 Fixing Docker socket permissions..."
+    sudo chmod 666 /var/run/docker.sock
+    # Add user to docker group if it exists
+    if getent group docker > /dev/null 2>&1; then
+        sudo usermod -aG docker $USER
+    fi
+fi
 
-# Create workshop namespace
-kubectl create namespace chaos-workshop --dry-run=client -o yaml | kubectl apply -f -
+# Wait a moment for Docker to be ready
+sleep 2
+
+# Try to create Kind cluster with error handling
+if kind create cluster --name chaos-workshop --config .devcontainer/kind-config.yaml 2>/dev/null; then
+    echo "✅ Kind cluster created successfully"
+    
+    # Set kubectl context
+    kubectl config use-context kind-chaos-workshop
+    
+    # Create workshop namespace
+    kubectl create namespace chaos-workshop --dry-run=client -o yaml | kubectl apply -f -
+else
+    echo "⚠️ Kind cluster creation failed - this is expected in some Codespaces environments"
+    echo "💡 Kubernetes scenarios will use the default cluster or can be set up manually"
+    
+    # Create workshop namespace in default cluster
+    kubectl create namespace chaos-workshop --dry-run=client -o yaml | kubectl apply -f - 2>/dev/null || true
+fi
 
 echo "✅ Post-create setup completed!"
 echo "🎉 Your CI/CD Chaos Workshop environment is ready!"

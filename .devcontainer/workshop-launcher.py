@@ -253,10 +253,18 @@ def run_kubernetes_workshop():
     """Run Kubernetes workshop"""
     print_header("☸️ Kubernetes Warzone")
     
-    # Check if Kind cluster is running
-    success, _, _ = run_command("kind get clusters")
+    # Check if any Kubernetes cluster is available
+    success, _, _ = run_command("kubectl get nodes")
     if success:
-        print_success("Kind cluster is running!")
+        print_success("Kubernetes cluster is accessible!")
+        
+        # Check if it's Kind cluster specifically
+        kind_success, _, _ = run_command("kind get clusters")
+        if kind_success:
+            print_success("Kind cluster is running!")
+        else:
+            print_info("Using default Kubernetes cluster (Kind not available)")
+        
         print(f"\n{Colors.GREEN}Available scenarios:{Colors.RESET}")
         print("  1. Python App Deployment")
         print("  2. Secret Automation")
@@ -267,8 +275,17 @@ def run_kubernetes_workshop():
         print(f"\n{Colors.YELLOW}Navigate to Kubernetes scenarios:{Colors.RESET}")
         print("  cd kubernetes/kubernetes-scenarios")
         print("  ls -la  # See available scenarios")
+        
+        print(f"\n{Colors.CYAN}Quick start:{Colors.RESET}")
+        print("  kubectl get nodes  # Check cluster status")
+        print("  kubectl get pods --all-namespaces  # See all pods")
     else:
-        print_error("Kind cluster is not running. Please check the setup.")
+        print_warning("Kubernetes cluster is not accessible.")
+        print(f"\n{Colors.YELLOW}This might be due to Docker-in-Docker limitations in Codespaces.{Colors.RESET}")
+        print(f"\n{Colors.CYAN}Alternative options:{Colors.RESET}")
+        print("  1. Use a cloud Kubernetes cluster (GKE, EKS, AKS)")
+        print("  2. Use local installation with Docker Desktop")
+        print("  3. Try running: kubectl config get-contexts")
 
 def run_interactive_demo():
     """Run interactive demo"""
