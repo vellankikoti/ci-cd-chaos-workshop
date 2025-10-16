@@ -887,7 +887,7 @@ PYEOF
                                 FEATURE_FLAGS="--basic"
                                 ;;
                             "Advanced")
-                                if [ "${PACKAGE_MANAGER}" = "apk" ]; then
+                                if [ "\${PACKAGE_MANAGER}" = "apk" ]; then
                                     EXTRA_PACKAGES="curl jq redis postgresql-client"
                                 else
                                     EXTRA_PACKAGES="curl jq redis-tools postgresql-client"
@@ -895,7 +895,7 @@ PYEOF
                                 FEATURE_FLAGS="--advanced"
                                 ;;
                             "Enterprise")
-                                if [ "${PACKAGE_MANAGER}" = "apk" ]; then
+                                if [ "\${PACKAGE_MANAGER}" = "apk" ]; then
                                     EXTRA_PACKAGES="curl jq redis postgresql-client nginx"
                                 else
                                     EXTRA_PACKAGES="curl jq redis-tools postgresql-client nginx"
