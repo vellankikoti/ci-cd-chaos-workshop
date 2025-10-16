@@ -619,7 +619,7 @@ WORKDIR /app
 COPY webapp/ ./webapp/
 
 # Create app.py based on parameters
-RUN cat > app.py << 'PYEOF'
+RUN cat > app.py << 'PYEOF'\\
 #!/usr/bin/env python3
 import os
 import time
@@ -652,6 +652,7 @@ if __name__ == "__main__":
     server = HTTPServer(('0.0.0.0', \${EXPOSE_PORT}), ParameterizedHandler)
     print(f"Starting server on port \${EXPOSE_PORT} for \$ENVIRONMENT environment...")
     server.serve_forever()
+\\
 PYEOF
 
 RUN chmod +x app.py
