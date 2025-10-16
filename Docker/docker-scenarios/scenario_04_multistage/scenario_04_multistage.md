@@ -11,8 +11,7 @@ This scenario demonstrates Docker multi-stage builds through hands-on experience
 ```
 scenario_04_multistage/
 ├── scenario_04_multistage.md   # This comprehensive guide
-├── demo_simple.py              # Quick terminal demo (5 mins)
-├── demo_interactive.py         # Full interactive experience (15-20 mins)
+├── demo.py                     # Main demo script with web dashboards (run this!)
 ├── cleanup.py                  # Cleanup script
 ├── bloated_app.py              # Anti-pattern demonstration app
 ├── optimized_app.py            # Best practices demonstration app
@@ -27,32 +26,17 @@ scenario_04_multistage/
 
 ## 🚀 Quick Start
 
-### Option 1: Quick Terminal Demo (Recommended for beginners)
+### Run the Demo (Interactive with Web Dashboards)
 ```bash
-python3 demo_simple.py
+python3 demo.py
 ```
 
-### Option 2: Full Interactive Experience (Recommended for workshops)
-```bash
-python3 demo_interactive.py
-```
+This launches **3 web applications** for hands-on learning!
 
 ### Cleanup
 ```bash
 python3 cleanup.py
 ```
-
-## 🆚 Demo Comparison
-
-| Feature | demo_simple.py | demo_interactive.py |
-|---------|----------------|---------------------|
-| **Duration** | ~5 minutes | 15-20 minutes |
-| **Experience** | Terminal-only | 3 web applications |
-| **Interaction** | Watch builds | Hands-on exploration |
-| **Visual** | Text output | Rich web interfaces |
-| **Learning** | Basic concepts | Comprehensive understanding |
-| **Audience** | CLI-focused users | Workshop attendees |
-| **Best For** | Quick demos | Training sessions |
 
 ## 🎓 What You'll Learn
 
@@ -71,9 +55,9 @@ python3 cleanup.py
 - Health check implementation
 - Production-ready best practices
 
-## 🌐 Interactive Applications
+## 🌐 Web Applications
 
-### When using `demo_interactive.py`, you get 3 web applications:
+### The demo launches 3 interactive web applications:
 
 | URL | Application | Purpose | Features |
 |-----|-------------|---------|----------|
@@ -142,8 +126,7 @@ All Python packages are automatically installed:
 - **Self-learning** Docker concepts
 
 ### Audience:
-- **Beginners**: Start with `demo_simple.py`
-- **Intermediate**: Use `demo_interactive.py` for deeper learning
+- **All Levels**: Run `python3 demo.py` - comprehensive with interactive web dashboards
 - **Advanced**: Explore the Dockerfiles and implementation
 - **Trainers**: Use interactive demo for engaging presentations
 

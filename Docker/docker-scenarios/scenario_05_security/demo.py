@@ -283,12 +283,12 @@ def main():
         print("   • Analyze attack surface: Vulnerable vs Secure")
         print("   • Monitor security metrics: Real-time dashboard")
         print()
-        print_step("⏳ Demo will auto-cleanup in 60 seconds...")
+        print_step("⏳ Demo will auto-cleanup in 10 minutes...")
         print("   • All security applications are running")
         print("   • You can explore them at your own pace")
         print("   • Press Ctrl+C to stop early and keep containers running")
-        time.sleep(60)
-        
+        time.sleep(600)
+
     except KeyboardInterrupt:
         print("\n⚠️ Demo interrupted by user")
         print("🔍 Security applications are still running! You can explore them:")
@@ -297,8 +297,8 @@ def main():
         print("   • Secure App: http://localhost:8002")
         print("")
         print("🧹 To clean up later, run: python3 cleanup.py")
-        print("⏳ Or wait 60 seconds for auto-cleanup...")
-        time.sleep(60)
+        print("⏳ Or wait 10 minutes for auto-cleanup...")
+        time.sleep(600)
         cleanup_containers()
     except Exception as e:
         print_error(f"Demo failed: {e}")

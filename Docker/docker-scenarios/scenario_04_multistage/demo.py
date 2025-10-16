@@ -311,12 +311,12 @@ def main():
         print("✅ Production Ready: Real-world applicable techniques")
         print()
         
-        print_step("⏳ Applications will run for 60 seconds for exploration...")
+        print_step("⏳ Applications will run for 10 minutes for exploration...")
         print("   • Try all three URLs to see the differences")
         print("   • Check the comparison dashboard for live metrics")
         print("   • Press Ctrl+C to stop early and keep containers running")
-        time.sleep(60)
-        
+        time.sleep(600)
+
     except KeyboardInterrupt:
         print("\n⚠️ Demo interrupted by user")
         print("🔍 All applications are still running! Explore them:")
@@ -325,8 +325,8 @@ def main():
         print("   • Optimized App: http://localhost:8002")
         print()
         print("🧹 To clean up later, run: python3 cleanup.py")
-        print("⏳ Or wait 30 seconds for auto-cleanup...")
-        time.sleep(30)
+        print("⏳ Or wait 10 minutes for auto-cleanup...")
+        time.sleep(600)
         cleanup_containers()
     except Exception as e:
         print_error(f"Demo failed: {e}")

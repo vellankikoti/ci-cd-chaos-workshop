@@ -12,10 +12,18 @@ This scenario demonstrates Jenkins' advanced capabilities by building a **rock-s
 - Real-time metrics updating every 2 seconds
 - Three working REST API endpoints
 - Animated progress bars and health indicators
-- Live business intelligence metrics
+- Live CI/CD pipeline metrics (using real data from container)
 - API call counter and live status indicators
 
-**📖 See [ENHANCEMENTS.md](./ENHANCEMENTS.md) for complete details on what makes this scenario interactive!**
+**📊 Real Data Collection:**
+- Uses `psutil` to collect actual CPU, memory, and disk usage from the running container
+- Tracks real request counts and calculates genuine requests per second
+- Displays actual container uptime and CI/CD configuration from Jenkins
+- See [DATA_ACCURACY.md](./DATA_ACCURACY.md) for complete breakdown of real vs simulated data
+
+**📖 Documentation:**
+- [DATA_ACCURACY.md](./DATA_ACCURACY.md) - What's real vs simulated data
+- [CHANGES_SUMMARY.md](./CHANGES_SUMMARY.md) - Complete list of changes made for data accuracy
 
 Core features include:
 
@@ -152,7 +160,7 @@ scenario_03_jenkins_powerhouse/
 ### **Real-time Metrics**
 - **System Metrics**: CPU, memory, disk usage
 - **Application Metrics**: Response time, throughput, error rate
-- **Business Metrics**: Users online, transactions, revenue
+- **CI/CD Metrics**: Deployments, builds, test coverage, success rates
 - **Health Status**: Database, cache, storage, network
 
 ### **Environment-specific Styling**
@@ -230,7 +238,7 @@ pipeline {
 ### **Real-time Metrics**
 - **System resources**: CPU, memory, disk usage
 - **Application performance**: Response time, error rate
-- **Business metrics**: User activity, transactions
+- **CI/CD metrics**: Deployment frequency, build success rates
 - **Deployment status**: Build and deployment tracking
 
 ## 🚀 Advanced Deployment Strategies

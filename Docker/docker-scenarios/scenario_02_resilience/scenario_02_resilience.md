@@ -13,8 +13,7 @@ This scenario demonstrates Docker resilience through hands-on experience, showin
 ```
 scenario_02_resilience/
 ├── scenario_02_resilience.md      # This comprehensive guide
-├── demo_simple.py                 # Quick terminal demo (5 mins)
-├── demo_interactive.py            # Full interactive experience (15-20 mins)
+├── demo.py                        # Main demo script (run this!)
 ├── cleanup.py                     # Cleanup script
 ├── fragile_app.py                 # Fragile container demonstration app
 ├── resilient_app.py                # Resilience best practices demonstration app
@@ -29,27 +28,15 @@ scenario_02_resilience/
 
 ## 🚀 Quick Start
 
-### Option 1: Quick Terminal Demo (Recommended for beginners)
+### Run the Demo
 ```bash
-python3 demo_simple.py
+python3 demo.py
 ```
 
 ### Cleanup
 ```bash
 python3 cleanup.py
 ```
-
-## 🆚 Demo Comparison
-
-| Feature | demo_simple.py | demo_interactive.py |
-|---------|----------------|---------------------|
-| **Duration** | ~5 minutes | 15-20 minutes |
-| **Experience** | Terminal-only | 3 web applications |
-| **Interaction** | Watch resilience fixes | Hands-on exploration |
-| **Visual** | Text output | Rich web interfaces |
-| **Learning** | Basic concepts | Comprehensive understanding |
-| **Audience** | CLI-focused users | Workshop attendees |
-| **Best For** | Quick demos | Training sessions |
 
 ## 🎓 What You'll Learn
 
@@ -67,9 +54,9 @@ python3 cleanup.py
 - Monitoring and alerting
 - Production-ready resilience practices
 
-## 🌐 Interactive Applications
+## 🌐 Web Applications
 
-### When using `demo_interactive.py`, you get 3 web applications:
+### The demo launches 2 web applications:
 
 | URL | Application | Purpose | Features |
 |-----|-------------|---------|----------|
@@ -141,10 +128,9 @@ All Python packages are automatically installed:
 - **Self-learning** Docker resilience concepts
 
 ### Audience:
-- **Beginners**: Start with `demo_simple.py`
-- **Intermediate**: Use `demo_interactive.py` for deeper learning
-- **Advanced**: Explore the Dockerfiles and implementation
-- **Trainers**: Use interactive demo for engaging presentations
+- **All Levels**: Run `python3 demo.py` - it's comprehensive yet beginner-friendly
+- **Advanced**: Explore the Dockerfiles and implementation details
+- **Trainers**: Use the demo for engaging, hands-on presentations
 
 ## 🚨 Troubleshooting
 

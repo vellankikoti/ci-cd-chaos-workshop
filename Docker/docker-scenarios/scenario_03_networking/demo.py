@@ -232,12 +232,12 @@ def main():
         print("   • Try voting to see the Redis connection in action")
         print("   • Check the network status indicators")
         print("")
-        print_step("⏳ Demo will auto-cleanup in 30 seconds...")
+        print_step("⏳ Demo will auto-cleanup in 10 minutes...")
         print("   • All services are still running and available")
         print("   • You can explore them at your own pace")
         print("   • Press Ctrl+C to stop early and keep containers running")
-        time.sleep(30)
-        
+        time.sleep(600)
+
     except KeyboardInterrupt:
         print("\n⚠️ Demo interrupted by user")
         print("🔍 Containers are still running! You can explore them:")
@@ -245,8 +245,8 @@ def main():
         print("   • Try voting to see the Redis connection in action")
         print("")
         print("🧹 To clean up later, run: python3 cleanup.py")
-        print("⏳ Or wait 30 seconds for auto-cleanup...")
-        time.sleep(30)
+        print("⏳ Or wait 10 minutes for auto-cleanup...")
+        time.sleep(600)
         cleanup_containers()
     except Exception as e:
         print_error(f"Demo failed: {e}")

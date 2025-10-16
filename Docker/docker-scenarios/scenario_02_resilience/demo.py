@@ -170,11 +170,11 @@ def main():
         print("   • Auto-restart policies for self-healing")
         print("   • Production-ready resilience hardening")
         print("")
-        print_step("⏳ Demo will auto-cleanup in 30 seconds...")
+        print_step("⏳ Demo will auto-cleanup in 10 minutes...")
         print("   • All resilience improvements are complete")
         print("   • You can explore the containers at your own pace")
         print("   • Press Ctrl+C to stop early and keep containers running")
-        time.sleep(30)
+        time.sleep(600)
         
     except KeyboardInterrupt:
         print("\n⚠️ Demo interrupted by user")
@@ -183,8 +183,8 @@ def main():
         print("   • Resilient App: http://localhost:8002")
         print("")
         print("🧹 To clean up later, run: python3 cleanup.py")
-        print("⏳ Or wait 30 seconds for auto-cleanup...")
-        time.sleep(30)
+        print("⏳ Or wait 10 minutes for auto-cleanup...")
+        time.sleep(600)
         cleanup_containers()
     except Exception as e:
         print_error(f"Demo failed: {e}")

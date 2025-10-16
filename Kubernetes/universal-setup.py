@@ -213,8 +213,7 @@ def verify_scenarios():
     scenarios = [
         "01-python-deploy",
         "02-secret-automation",
-        "03-auto-scaling",
-        "04-blue-green"
+        "03-blue-green"
     ]
 
     missing_scenarios = []
@@ -224,13 +223,18 @@ def verify_scenarios():
         if scenario_dir.exists():
             print_success(f"Scenario {scenario} ✓")
 
-            # Check for key files
-            key_files = ["README.md", "hero-solution"]
-            for key_file in key_files:
-                if (scenario_dir / key_file).exists():
-                    print_success(f"  {key_file} ✓")
-                else:
-                    print_warning(f"  {key_file} missing")
+            # Check for key files (check for .md files instead of README.md)
+            md_files = list(scenario_dir.glob("*.md"))
+            if md_files:
+                print_success(f"  Documentation ({len(md_files)} file(s)) ✓")
+            else:
+                print_warning(f"  No documentation found")
+
+            # Check for hero-solution directory
+            if (scenario_dir / "hero-solution").exists():
+                print_success(f"  hero-solution ✓")
+            else:
+                print_warning(f"  hero-solution missing")
         else:
             missing_scenarios.append(scenario)
             print_error(f"Scenario {scenario} directory missing")
@@ -245,10 +249,9 @@ def provide_next_steps(env_info):
 
     print("\n📚 Available Scenarios:")
     scenarios = [
-        ("01-python-deploy", "Deploy Python apps with automation"),
-        ("02-secret-automation", "Secure secret management"),
-        ("03-auto-scaling", "Horizontal Pod Autoscaling"),
-        ("04-blue-green", "Zero-downtime deployments")
+        ("01-python-deploy", "Deploy Python voting app with automation"),
+        ("02-secret-automation", "Secure secret management with automation"),
+        ("03-blue-green", "Zero-downtime blue-green deployments")
     ]
 
     for scenario_id, description in scenarios:

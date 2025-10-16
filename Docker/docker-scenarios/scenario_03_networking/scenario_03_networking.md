@@ -10,10 +10,10 @@ Learn container communication, network isolation, and debugging techniques.
 cd Docker/docker-scenarios/scenario_03_networking
 
 # Run automated demo
-./demo_simple.py
+python3 demo.py
 
 # Clean up when done
-./scripts/cleanup.py
+python3 cleanup.py
 ```
 
 ## 📋 What You'll Learn
