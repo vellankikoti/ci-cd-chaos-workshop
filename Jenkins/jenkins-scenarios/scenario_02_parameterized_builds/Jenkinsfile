@@ -523,11 +523,17 @@ PYEOF
                     echo "║  🏗️  Building Docker image for ${params.ENVIRONMENT} environment..."
                     
                     // Create Dockerfile based on parameters
-                    sh '''
+                    sh """
                         echo "║     • Creating Dockerfile for ${params.ENVIRONMENT} + ${params.FEATURES}..."
                         
+                        # Set environment variables for shell script
+                        ENVIRONMENT="${params.ENVIRONMENT}"
+                        FEATURES="${params.FEATURES}"
+                        VERSION="${params.VERSION}"
+                        RUN_TESTS="${params.RUN_TESTS}"
+                        
                         # Environment-specific base image
-                        case "${params.ENVIRONMENT}" in
+                        case "\$ENVIRONMENT" in
                             "Development")
                                 BASE_IMAGE="python:3.11-slim"
                                 EXPOSE_PORT="8080"
@@ -555,7 +561,7 @@ PYEOF
                         esac
                         
                         # Feature-specific packages
-                        case "${params.FEATURES}" in
+                        case "\$FEATURES" in
                             "Basic")
                                 EXTRA_PACKAGES=""
                                 FEATURE_FLAGS="--basic"
@@ -598,10 +604,10 @@ PYEOF
 FROM ${BASE_IMAGE}
 
 # Set environment variables
-ENV ENVIRONMENT=${params.ENVIRONMENT}
-ENV VERSION=${params.VERSION}
-ENV FEATURES=${params.FEATURES}
-ENV RUN_TESTS=${params.RUN_TESTS}
+ENV ENVIRONMENT=\$ENVIRONMENT
+ENV VERSION=\$VERSION
+ENV FEATURES=\$FEATURES
+ENV RUN_TESTS=\$RUN_TESTS
 
 # Install system packages
 RUN ${PACKAGE_INSTALL_CMD}
@@ -629,10 +635,10 @@ class ParameterizedHandler(SimpleHTTPRequestHandler):
             self.end_headers()
             
             status = {
-                "environment": "${params.ENVIRONMENT}",
-                "version": "${params.VERSION}",
-                "features": "${params.FEATURES}",
-                "run_tests": ${params.RUN_TESTS},
+                "environment": "\$ENVIRONMENT",
+                "version": "\$VERSION",
+                "features": "\$FEATURES",
+                "run_tests": \$RUN_TESTS,
                 "timestamp": datetime.now().isoformat(),
                 "uptime": time.time(),
                 "status": "running"
@@ -643,8 +649,8 @@ class ParameterizedHandler(SimpleHTTPRequestHandler):
 
 if __name__ == "__main__":
     os.chdir('/app/webapp')
-    server = HTTPServer(('0.0.0.0', ${EXPOSE_PORT}), ParameterizedHandler)
-    print(f"Starting server on port ${EXPOSE_PORT} for ${params.ENVIRONMENT} environment...")
+    server = HTTPServer(('0.0.0.0', \${EXPOSE_PORT}), ParameterizedHandler)
+    print(f"Starting server on port \${EXPOSE_PORT} for \$ENVIRONMENT environment...")
     server.serve_forever()
 PYEOF
 
@@ -662,7 +668,7 @@ CMD ["python3", "app.py"]
 EOF
                         
                         echo "║     • Dockerfile created successfully"
-                    '''
+                    """
                     
                     // Build Docker image
                     sh """
