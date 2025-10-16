@@ -919,30 +919,8 @@ PYEOF
                             fi
                         fi
 
-                        # Create advanced Dockerfile
-                        cat > Dockerfile << EOF
-FROM \${BASE_IMAGE}
-
-# Set environment variables
-ENV ENVIRONMENT=${params.ENVIRONMENT}
-ENV VERSION=${params.VERSION}
-ENV FEATURES=${params.FEATURES}
-ENV RUN_TESTS=${params.RUN_TESTS}
-ENV SECURITY_SCAN=${params.SECURITY_SCAN}
-ENV PERFORMANCE_TEST=${params.PERFORMANCE_TEST}
-ENV DEPLOYMENT_STRATEGY=${params.DEPLOYMENT_STRATEGY}
-
-# Install system packages
-RUN \${PACKAGE_INSTALL_CMD}
-
-# Create app directory
-WORKDIR /app
-
-# Copy webapp files
-COPY webapp/ ./webapp/
-
-# Create advanced app.py with all features
-RUN cat > app.py << 'PYEOF'
+                        # Create advanced app.py file first (before Dockerfile)
+                        cat > app.py << 'APPEOF'
 #!/usr/bin/env python3
 import os
 import time
@@ -959,7 +937,7 @@ class AdvancedHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
-            
+
             status = {
                 "environment": os.environ.get("ENVIRONMENT", "Unknown"),
                 "version": os.environ.get("VERSION", "1.0.0"),
@@ -991,7 +969,7 @@ class AdvancedHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
-            
+
             metrics = {
                 "timestamp": datetime.now().isoformat(),
                 "system": {
@@ -1019,7 +997,7 @@ class AdvancedHandler(SimpleHTTPRequestHandler):
             self.send_header("Content-type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
-            
+
             health = {
                 "status": "healthy",
                 "timestamp": datetime.now().isoformat(),
@@ -1049,9 +1027,34 @@ if __name__ == "__main__":
     print(f"     - /api/metrics - System metrics")
     print(f"     - /api/health - Health checks")
     server.serve_forever()
-PYEOF
+APPEOF
 
-RUN chmod +x app.py
+                        chmod +x app.py
+
+                        # Create advanced Dockerfile
+                        cat > Dockerfile << EOF
+FROM \${BASE_IMAGE}
+
+# Set environment variables
+ENV ENVIRONMENT=${params.ENVIRONMENT}
+ENV VERSION=${params.VERSION}
+ENV FEATURES=${params.FEATURES}
+ENV RUN_TESTS=${params.RUN_TESTS}
+ENV SECURITY_SCAN=${params.SECURITY_SCAN}
+ENV PERFORMANCE_TEST=${params.PERFORMANCE_TEST}
+ENV DEPLOYMENT_STRATEGY=${params.DEPLOYMENT_STRATEGY}
+
+# Install system packages
+RUN \${PACKAGE_INSTALL_CMD}
+
+# Create app directory
+WORKDIR /app
+
+# Copy webapp files
+COPY webapp/ ./webapp/
+
+# Copy app.py
+COPY app.py /app/app.py
 
 # Expose port
 EXPOSE 8080
