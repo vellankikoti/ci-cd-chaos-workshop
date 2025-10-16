@@ -567,7 +567,7 @@ PYEOF
                                 FEATURE_FLAGS="--basic"
                                 ;;
                             "Advanced")
-                                if [ "${PACKAGE_MANAGER}" = "apk" ]; then
+                                if [ "\$PACKAGE_MANAGER" = "apk" ]; then
                                     EXTRA_PACKAGES="curl jq"
                                 else
                                     EXTRA_PACKAGES="curl jq"
@@ -575,7 +575,7 @@ PYEOF
                                 FEATURE_FLAGS="--advanced"
                                 ;;
                             "Enterprise")
-                                if [ "${PACKAGE_MANAGER}" = "apk" ]; then
+                                if [ "\$PACKAGE_MANAGER" = "apk" ]; then
                                     EXTRA_PACKAGES="curl jq redis postgresql-client"
                                 else
                                     EXTRA_PACKAGES="curl jq redis-tools postgresql-client"
@@ -585,23 +585,23 @@ PYEOF
                         esac
                         
                         # Handle empty packages and cleanup
-                        if [ -z "${EXTRA_PACKAGES}" ]; then
-                            if [ -n "${PACKAGE_CLEANUP}" ]; then
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE} && ${PACKAGE_CLEANUP}"
+                        if [ -z "\$EXTRA_PACKAGES" ]; then
+                            if [ -n "\$PACKAGE_CLEANUP" ]; then
+                                PACKAGE_INSTALL_CMD="\$PACKAGE_UPDATE && \$PACKAGE_CLEANUP"
                             else
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE}"
+                                PACKAGE_INSTALL_CMD="\$PACKAGE_UPDATE"
                             fi
                         else
-                            if [ -n "${PACKAGE_CLEANUP}" ]; then
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE} && ${PACKAGE_INSTALL} ${EXTRA_PACKAGES} && ${PACKAGE_CLEANUP}"
+                            if [ -n "\$PACKAGE_CLEANUP" ]; then
+                                PACKAGE_INSTALL_CMD="\$PACKAGE_UPDATE && \$PACKAGE_INSTALL \$EXTRA_PACKAGES && \$PACKAGE_CLEANUP"
                             else
-                                PACKAGE_INSTALL_CMD="${PACKAGE_UPDATE} && ${PACKAGE_INSTALL} ${EXTRA_PACKAGES}"
+                                PACKAGE_INSTALL_CMD="\$PACKAGE_UPDATE && \$PACKAGE_INSTALL \$EXTRA_PACKAGES"
                             fi
                         fi
                         
                         # Create Dockerfile
                         cat > Dockerfile << EOF
-FROM ${BASE_IMAGE}
+FROM \$BASE_IMAGE
 
 # Set environment variables
 ENV ENVIRONMENT=\$ENVIRONMENT
@@ -610,7 +610,7 @@ ENV FEATURES=\$FEATURES
 ENV RUN_TESTS=\$RUN_TESTS
 
 # Install system packages
-RUN ${PACKAGE_INSTALL_CMD}
+RUN \$PACKAGE_INSTALL_CMD
 
 # Create app directory
 WORKDIR /app
@@ -657,11 +657,11 @@ PYEOF
 RUN chmod +x app.py
 
 # Expose port
-EXPOSE ${EXPOSE_PORT}
+EXPOSE \$EXPOSE_PORT
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
-    CMD curl -f http://localhost:${EXPOSE_PORT}/api/status || exit 1
+    CMD curl -f http://localhost:\$EXPOSE_PORT/api/status || exit 1
 
 # Run the application
 CMD ["python3", "app.py"]
