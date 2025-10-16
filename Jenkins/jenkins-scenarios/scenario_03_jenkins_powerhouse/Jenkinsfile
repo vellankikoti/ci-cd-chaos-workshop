@@ -604,7 +604,114 @@ html_content = f"""<!DOCTYPE html>
             color: #666;
             margin-top: 5px;
         }}
-        
+
+        .progress-bar {{
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }}
+
+        .progress-fill {{
+            height: 100%;
+            background: {env_config['color']};
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }}
+
+        .health-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }}
+
+        .health-item {{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            text-align: center;
+        }}
+
+        .health-icon {{
+            font-size: 2em;
+            margin-bottom: 10px;
+        }}
+
+        .health-name {{
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: {env_config['color']};
+        }}
+
+        .health-status {{
+            font-size: 0.9em;
+            color: #666;
+        }}
+
+        .health-item.healthy {{
+            background: rgba(40, 167, 69, 0.1);
+        }}
+
+        .health-item.healthy .health-icon {{
+            animation: pulse-green 2s infinite;
+        }}
+
+        @keyframes pulse-green {{
+            0%, 100% {{ opacity: 1; }}
+            50% {{ opacity: 0.6; }}
+        }}
+
+        .api-status {{
+            display: inline-block;
+            padding: 5px 12px;
+            background: rgba(40, 167, 69, 0.2);
+            border-radius: 15px;
+            font-size: 0.85em;
+            color: #28a745;
+            font-weight: bold;
+            margin-left: 10px;
+            animation: blink 2s infinite;
+        }}
+
+        @keyframes blink {{
+            0%, 100% {{ opacity: 1; }}
+            50% {{ opacity: 0.5; }}
+        }}
+
+        .deployment-strategy-card {{
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            border: 2px solid {env_config['color']};
+        }}
+
+        .deployment-info {{
+            margin-top: 15px;
+        }}
+
+        .deployment-info p {{
+            margin: 10px 0;
+            font-size: 1.05em;
+        }}
+
+        .deployment-steps {{
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid {env_config['color']};
+        }}
+
+        .deployment-steps h4 {{
+            color: {env_config['color']};
+            margin-bottom: 10px;
+        }}
+
         .refresh-btn {{
             background: {env_config['color']};
             color: white;
@@ -646,7 +753,7 @@ html_content = f"""<!DOCTYPE html>
         <div class="header">
             <h1>{env_config['icon']} Jenkins Powerhouse</h1>
             <div class="subtitle">{env_config['description']} - {features} Features</div>
-            <div class="status-indicator">🟢 LIVE & RUNNING</div>
+            <div class="status-indicator">🟢 LIVE & RUNNING <span class="api-status" id="api-indicator">API LIVE</span></div>
         </div>
         
         <div class="dashboard">
@@ -724,23 +831,102 @@ html_content = f"""<!DOCTYPE html>
             </div>
             
             <div class="card">
-                <h3>📊 Live Metrics</h3>
+                <h3>📊 Live System Metrics (Real-time API)</h3>
                 <div class="metrics">
                     <div class="metric">
-                        <div class="metric-value" id="uptime">0s</div>
-                        <div class="metric-label">Uptime</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value" id="requests">0</div>
-                        <div class="metric-label">Requests</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-value" id="cpu">0%</div>
+                        <div class="metric-value" id="cpu">--</div>
                         <div class="metric-label">CPU Usage</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="cpu-bar" style="width: 0%"></div>
+                        </div>
                     </div>
                     <div class="metric">
-                        <div class="metric-value" id="memory">0%</div>
+                        <div class="metric-value" id="memory">--</div>
                         <div class="metric-label">Memory</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="memory-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="disk">--</div>
+                        <div class="metric-label">Disk Usage</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="disk-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="network">--</div>
+                        <div class="metric-label">Network I/O</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📈 Application Metrics (Live API)</h3>
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="rps">--</div>
+                        <div class="metric-label">Requests/sec</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="response-time">--</div>
+                        <div class="metric-label">Response Time</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="error-rate">--</div>
+                        <div class="metric-label">Error Rate</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="connections">--</div>
+                        <div class="metric-label">Active Connections</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>💰 Business Metrics (Live API)</h3>
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-value" id="users">--</div>
+                        <div class="metric-label">Users Online</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="transactions">--</div>
+                        <div class="metric-label">Transactions/min</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="revenue">--</div>
+                        <div class="metric-label">Revenue Today</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="conversion">--</div>
+                        <div class="metric-label">Conversion Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🏥 Health Status (Live API)</h3>
+                <div class="health-grid">
+                    <div class="health-item" id="health-database">
+                        <span class="health-icon">🔄</span>
+                        <span class="health-name">Database</span>
+                        <span class="health-status">Checking...</span>
+                    </div>
+                    <div class="health-item" id="health-cache">
+                        <span class="health-icon">🔄</span>
+                        <span class="health-name">Cache</span>
+                        <span class="health-status">Checking...</span>
+                    </div>
+                    <div class="health-item" id="health-storage">
+                        <span class="health-icon">🔄</span>
+                        <span class="health-name">Storage</span>
+                        <span class="health-status">Checking...</span>
+                    </div>
+                    <div class="health-item" id="health-api">
+                        <span class="health-icon">🔄</span>
+                        <span class="health-name">External API</span>
+                        <span class="health-status">Checking...</span>
                     </div>
                 </div>
             </div>
@@ -753,47 +939,128 @@ html_content = f"""<!DOCTYPE html>
             </div>
         </div>
         
-        <button class="refresh-btn" onclick="refreshData()">🔄 Refresh Data</button>
-        
+        <div class="card deployment-strategy-card">
+            <h3>🚀 Deployment Strategy: {deployment_strategy}</h3>
+            <div class="deployment-info">
+                <p><strong>Strategy Type:</strong> {deployment_strategy}</p>
+                <p><strong>Description:</strong>
+                    {'Zero-downtime deployment with instant rollback capability' if deployment_strategy == 'Blue-Green' else
+                     'Gradual instance replacement with health validation' if deployment_strategy == 'Rolling' else
+                     'Progressive traffic shifting with metrics monitoring'}
+                </p>
+                <div class="deployment-steps">
+                    <h4>Steps:</h4>
+                    <ul class="features-list">
+                        {'<li>Prepare green environment</li><li>Deploy to green</li><li>Run health checks</li><li>Switch traffic to green</li><li>Monitor and cleanup blue</li>' if deployment_strategy == 'Blue-Green' else
+                         '<li>Deploy to subset of instances</li><li>Health check validation</li><li>Gradually replace remaining</li><li>Final validation</li>' if deployment_strategy == 'Rolling' else
+                         '<li>Deploy to 10% traffic</li><li>Monitor metrics</li><li>Gradually increase to 50%</li><li>Full deployment after validation</li>'}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="refreshData()">🔄 Refresh Live Data (Auto-updates every 2s)</button>
+
         <div class="footer">
             <div class="timestamp">Last updated: <span id="timestamp">{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</span></div>
-            <div>Jenkins Powerhouse Demo - Advanced CI/CD Pipeline</div>
+            <div>Jenkins Powerhouse Demo - Advanced CI/CD Pipeline with Live APIs</div>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+                <strong>API Endpoints:</strong> /api/status | /api/metrics | /api/health
+            </div>
         </div>
     </div>
     
     <script>
-        let startTime = Date.now();
-        let requestCount = 0;
-        
-        function updateMetrics() {{
-            const uptime = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('uptime').textContent = uptime + 's';
-            document.getElementById('requests').textContent = requestCount;
-            document.getElementById('cpu').textContent = Math.floor(Math.random() * 30 + 10) + '%';
-            document.getElementById('memory').textContent = Math.floor(Math.random() * 40 + 20) + '%';
-            document.getElementById('timestamp').textContent = new Date().toLocaleString();
-        }}
-        
-        function refreshData() {{
-            requestCount++;
-            updateMetrics();
-            
-            // Simulate API call
-            fetch('/api/status')
+        let apiCallCount = 0;
+
+        // Fetch system metrics from API
+        function fetchMetrics() {{
+            apiCallCount++;
+            fetch('/api/metrics')
                 .then(response => response.json())
                 .then(data => {{
-                    console.log('Status updated:', data);
+                    // Update system metrics
+                    document.getElementById('cpu').textContent = data.system.cpu_percent + '%';
+                    document.getElementById('memory').textContent = data.system.memory_percent + '%';
+                    document.getElementById('disk').textContent = data.system.disk_percent + '%';
+                    document.getElementById('network').textContent = Math.round(data.system.load_average[0] * 100) / 100;
+
+                    // Update progress bars
+                    document.getElementById('cpu-bar').style.width = data.system.cpu_percent + '%';
+                    document.getElementById('memory-bar').style.width = data.system.memory_percent + '%';
+                    document.getElementById('disk-bar').style.width = data.system.disk_percent + '%';
+
+                    // Update application metrics
+                    document.getElementById('rps').textContent = data.application.requests_per_second;
+                    document.getElementById('response-time').textContent = data.application.response_time_ms + 'ms';
+                    document.getElementById('error-rate').textContent = (data.application.error_rate * 100).toFixed(2) + '%';
+                    document.getElementById('connections').textContent = data.application.active_connections;
+
+                    // Update business metrics
+                    document.getElementById('users').textContent = data.business.users_online.toLocaleString();
+                    document.getElementById('transactions').textContent = data.business.transactions_per_minute.toLocaleString();
+                    document.getElementById('revenue').textContent = '$' + data.business.revenue_today.toLocaleString();
+                    document.getElementById('conversion').textContent = (data.business.conversion_rate * 100).toFixed(1) + '%';
+
+                    // Update timestamp
+                    document.getElementById('timestamp').textContent = new Date(data.timestamp).toLocaleString();
+
+                    // Update API indicator
+                    document.getElementById('api-indicator').textContent = 'API LIVE (' + apiCallCount + ' calls)';
                 }})
                 .catch(error => {{
-                    console.log('API call simulated');
+                    console.error('API error:', error);
+                    document.getElementById('api-indicator').textContent = 'API ERROR';
+                    document.getElementById('api-indicator').style.background = 'rgba(220, 53, 69, 0.2)';
+                    document.getElementById('api-indicator').style.color = '#dc3545';
                 }});
         }}
-        
-        // Update metrics every second
-        setInterval(updateMetrics, 1000);
-        
-        // Initial update
-        updateMetrics();
+
+        // Fetch health status from API
+        function fetchHealth() {{
+            fetch('/api/health')
+                .then(response => response.json())
+                .then(data => {{
+                    // Update health status for each service
+                    Object.keys(data.checks).forEach(service => {{
+                        const element = document.getElementById('health-' + service.replace('_', '-'));
+                        if (element) {{
+                            const check = data.checks[service];
+                            const icon = element.querySelector('.health-icon');
+                            const status = element.querySelector('.health-status');
+
+                            if (check.status === 'healthy') {{
+                                element.classList.add('healthy');
+                                icon.textContent = '✅';
+                                status.textContent = check.response_time + 'ms';
+                            }} else {{
+                                element.classList.remove('healthy');
+                                icon.textContent = '❌';
+                                status.textContent = 'Error';
+                            }}
+                        }}
+                    }});
+                }})
+                .catch(error => {{
+                    console.error('Health check error:', error);
+                }});
+        }}
+
+        // Manual refresh button
+        function refreshData() {{
+            fetchMetrics();
+            fetchHealth();
+        }}
+
+        // Auto-update every 2 seconds
+        setInterval(() => {{
+            fetchMetrics();
+            fetchHealth();
+        }}, 2000);
+
+        // Initial load
+        fetchMetrics();
+        fetchHealth();
     </script>
 </body>
 </html>"""

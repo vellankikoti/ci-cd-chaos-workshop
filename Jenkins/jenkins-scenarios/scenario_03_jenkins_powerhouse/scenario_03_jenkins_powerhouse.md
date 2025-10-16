@@ -8,6 +8,17 @@ Experience Jenkins' most advanced features through hands-on interactive applicat
 
 This scenario demonstrates Jenkins' advanced capabilities by building a **rock-solid, production-grade pipeline** that incorporates all learnings from Scenarios 1 and 2, plus cutting-edge features like:
 
+**⚡ NEW: Fully Interactive Dashboard with Live API Integration!**
+- Real-time metrics updating every 2 seconds
+- Three working REST API endpoints
+- Animated progress bars and health indicators
+- Live business intelligence metrics
+- API call counter and live status indicators
+
+**📖 See [ENHANCEMENTS.md](./ENHANCEMENTS.md) for complete details on what makes this scenario interactive!**
+
+Core features include:
+
 - **Multi-Environment Deployments** (Development, Staging, Production)
 - **Advanced Security & Compliance** (Vulnerability scanning, secrets management)
 - **Performance Optimization** (Parallel builds, caching, resource management)
