@@ -619,40 +619,7 @@ WORKDIR /app
 COPY webapp/ ./webapp/
 
 # Create app.py based on parameters
-RUN cat > app.py << 'PYEOF'
-#!/usr/bin/env python3
-import os
-import time
-import json
-from http.server import HTTPServer, SimpleHTTPRequestHandler
-from datetime import datetime
-
-class ParameterizedHandler(SimpleHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/api/status':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            
-            status = {
-                "environment": "\$ENVIRONMENT",
-                "version": "\$VERSION",
-                "features": "\$FEATURES",
-                "run_tests": \$RUN_TESTS,
-                "timestamp": datetime.now().isoformat(),
-                "uptime": time.time(),
-                "status": "running"
-            }
-            self.wfile.write(json.dumps(status).encode())
-        else:
-            super().do_GET()
-
-if __name__ == "__main__":
-    os.chdir('/app/webapp')
-    server = HTTPServer(('0.0.0.0', \${EXPOSE_PORT}), ParameterizedHandler)
-    print(f"Starting server on port \${EXPOSE_PORT} for \$ENVIRONMENT environment...")
-    server.serve_forever()
-PYEOF
+RUN printf '#!/usr/bin/env python3\nimport os\nimport time\nimport json\nfrom http.server import HTTPServer, SimpleHTTPRequestHandler\nfrom datetime import datetime\n\nclass ParameterizedHandler(SimpleHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == "/api/status":\n            self.send_response(200)\n            self.send_header("Content-type", "application/json")\n            self.end_headers()\n            \n            status = {\n                "environment": "\$ENVIRONMENT",\n                "version": "\$VERSION",\n                "features": "\$FEATURES",\n                "run_tests": \$RUN_TESTS,\n                "timestamp": datetime.now().isoformat(),\n                "uptime": time.time(),\n                "status": "running"\n            }\n            self.wfile.write(json.dumps(status).encode())\n        else:\n            super().do_GET()\n\nif __name__ == "__main__":\n    os.chdir("/app/webapp")\n    server = HTTPServer(("0.0.0.0", \${EXPOSE_PORT}), ParameterizedHandler)\n    print(f"Starting server on port \${EXPOSE_PORT} for \$ENVIRONMENT environment...")\n    server.serve_forever()\n' > app.py
 
 RUN chmod +x app.py
 
