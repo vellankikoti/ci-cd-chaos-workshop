@@ -24,17 +24,35 @@
 # 1. Kubernetes cluster running
 kubectl cluster-info
 
-# 2. Install Python dependencies
+# 2. Install Python dependencies (if running locally)
 cd hero-solution
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt  # Optional - Flask is only dependency
 ```
 
-### Deploy Secure App (The Easy Way)
+### Deploy Secure App
 
 ```bash
-# ONE command for enterprise security
+# ONE command - automatically uses enhanced version if available!
 python3 deploy.py
+kubectl port-forward -n secure-todo svc/secure-todo-app 31005:80
+# Open: http://localhost:31005
 ```
+
+### 🌟 Smart Auto-Detection!
+
+The `deploy.py` script **automatically detects** if enhanced files exist and deploys the best version:
+
+- ✅ **Enhanced version found?** → Deploys **stunning security dashboard** with live monitoring!
+- ✅ **Enhanced version not found?** → Deploys standard version (still great!)
+
+**No need to choose** - it picks the best version automatically!
+
+**Enhanced Features** (when available):
+- 🛡️ **Live Security Monitoring Dashboard** - Real-time security status
+- 📊 **Security Audit Log** - Color-coded events updating every 2 seconds
+- 🔐 **Visual Secret Status** - All 3 Kubernetes secrets with heartbeat animations
+- 💯 **Dynamic Security Score** - Animated security score circle
+- 🎨 **Cybersecurity Aesthetic** - Dark theme with neon accents
 
 **The script will output ready-to-copy commands!** Look for:
 
@@ -42,7 +60,7 @@ python3 deploy.py
 🔧 PORT-FORWARD COMMANDS (Copy & Paste):
 
    # Terminal 1: Start port-forward
-   kubectl port-forward -n secure-todo svc/todo-app 31005:80
+   kubectl port-forward -n secure-todo svc/secure-todo-app 31005:80
 
    # Then open: http://localhost:31005
 ```

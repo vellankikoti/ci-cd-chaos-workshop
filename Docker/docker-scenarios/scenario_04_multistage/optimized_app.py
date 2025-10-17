@@ -9,6 +9,10 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+# ✨ OPTIMIZED MULTI-STAGE DOCKER BEST PRACTICES - Production Ready!
+# This file demonstrates the CORRECT way to implement multi-stage builds.
+# Compare with bloated_app.py to see the anti-patterns to avoid.
+
 TEMPLATE = """
 <!DOCTYPE html>
 <html lang='en'>

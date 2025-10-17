@@ -2,6 +2,8 @@
 """
 Simple Secure Todo App with SQLite
 Demonstrates Kubernetes secret management without complex database
+
+Secure Todo App for Kubernetes secret management demo.
 """
 from flask import Flask, render_template_string, request, jsonify
 import sqlite3

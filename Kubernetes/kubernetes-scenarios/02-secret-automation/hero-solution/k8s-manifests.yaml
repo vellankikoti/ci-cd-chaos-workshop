@@ -25,17 +25,17 @@ stringData:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: todo-app
+  name: secure-todo-app
   namespace: secure-todo
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: todo-app
+      app: secure-todo-app
   template:
     metadata:
       labels:
-        app: todo-app
+        app: secure-todo-app
     spec:
       # Security: Non-root user
       securityContext:
@@ -44,7 +44,7 @@ spec:
         fsGroup: 1000
 
       containers:
-      - name: todo-app
+      - name: secure-todo-app
         image: YOUR_IMAGE_HERE
         imagePullPolicy: IfNotPresent
 
@@ -109,11 +109,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: todo-app
+  name: secure-todo-app
   namespace: secure-todo
 spec:
   selector:
-    app: todo-app
+    app: secure-todo-app
   ports:
   - port: 80
     targetPort: 8080

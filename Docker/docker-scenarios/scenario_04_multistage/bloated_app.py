@@ -9,6 +9,10 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
+# 🚨 BLOATED DOCKER ANTI-PATTERNS - DO NOT USE IN PRODUCTION!
+# This file demonstrates what NOT to do in production.
+# Compare with optimized_app.py to see the proper multi-stage implementation.
+
 TEMPLATE = """
 <!DOCTYPE html>
 <html lang='en'>

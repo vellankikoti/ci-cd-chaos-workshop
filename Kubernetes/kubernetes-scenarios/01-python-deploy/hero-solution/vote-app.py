@@ -2,6 +2,9 @@
 """
 Simple Voting App - WFH vs WFO
 Stores votes in Redis - Simple and works!
+
+This is the hero solution version of the voting app for Kubernetes deployment demo.
+For the basic version, see simple-voting-app/vote-app.py
 """
 from flask import Flask, render_template_string, request, jsonify
 import redis

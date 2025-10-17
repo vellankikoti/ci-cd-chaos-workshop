@@ -17,6 +17,9 @@ app = Flask(__name__)
 
 # 🛡️ RESILIENT RESILIENCE BEST PRACTICES - Production Ready!
 # These demonstrate proper resilience practices
+#
+# This file demonstrates the CORRECT way to implement resilience.
+# Compare with fragile_app.py to see the anti-patterns to avoid.
 
 # Global variables to track resilience
 uptime_start = time.time()

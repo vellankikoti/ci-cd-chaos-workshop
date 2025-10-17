@@ -1,0 +1,183 @@
+# 🚀 BLUE-GREEN DEPLOYMENT DEMO
+# Clean, simple demonstration of zero-downtime deployments
+
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: blue-green-demo
+
+---
+# Blue Deployment (Version 1.0)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blue-deployment
+  namespace: blue-green-demo
+  labels:
+    app: demo-app
+    version: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo-app
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: demo-app
+        version: blue
+    spec:
+      # Security: Non-root user
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: app
+        image: blue-green-demo:latest
+        imagePullPolicy: IfNotPresent
+
+        # Security: Minimal permissions
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+          readOnlyRootFilesystem: true
+
+        ports:
+        - containerPort: 8080
+
+        # Environment variables for blue version
+        env:
+        - name: VERSION
+          value: "v1.0-blue"
+        - name: COLOR
+          value: "blue"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+
+        # Resource limits
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Green Deployment (Version 2.0)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: green-deployment
+  namespace: blue-green-demo
+  labels:
+    app: demo-app
+    version: green
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo-app
+      version: green
+  template:
+    metadata:
+      labels:
+        app: demo-app
+        version: green
+    spec:
+      # Security: Non-root user
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: app
+        image: blue-green-demo:latest
+        imagePullPolicy: IfNotPresent
+
+        # Security: Minimal permissions
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+          readOnlyRootFilesystem: true
+
+        ports:
+        - containerPort: 8080
+
+        # Environment variables for green version
+        env:
+        - name: VERSION
+          value: "v2.0-green"
+        - name: COLOR
+          value: "green"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+
+        # Resource limits
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+# Service (Controls which version receives traffic)
+# Change selector.version to switch between blue and green
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-app
+  namespace: blue-green-demo
+spec:
+  selector:
+    app: demo-app
+    version: blue  # Will be replaced by deploy script: blue or green
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 31006
+  type: NodePort

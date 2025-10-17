@@ -6,7 +6,7 @@ A complete demonstration of Kubernetes secret management using a secure Todo app
 
 ## What's Included
 
-- **todo-app.py** - Flask-based Todo application with security features
+- **app.py** - Flask-based Todo application with security features
 - **deploy.py** - One-command deployment script with auto-generated secrets
 - **Dockerfile** - Secure container definition (non-root user)
 - **k8s-manifests.yaml** - Complete Kubernetes configuration
@@ -31,7 +31,7 @@ The deployment script provides **copy-paste ready commands**:
 
 ```
 🔧 PORT-FORWARD COMMANDS (Copy & Paste):
-   kubectl port-forward -n secure-todo svc/todo-app 31005:80
+   kubectl port-forward -n secure-todo svc/secure-todo-app 31005:80
 
 🔐 SECURITY FEATURES:
    ✅ Auto-generated 32-char secure passwords
@@ -56,7 +56,7 @@ http://localhost:31005
 
 **Option 2:** Port-forward (works everywhere)
 ```bash
-kubectl port-forward -n secure-todo svc/todo-app 31005:80
+kubectl port-forward -n secure-todo svc/secure-todo-app 31005:80
 # Then open: http://localhost:31005
 ```
 
@@ -93,7 +93,7 @@ kubectl get all -n secure-todo
 kubectl get secrets -n secure-todo
 
 # Check logs
-kubectl logs -n secure-todo -l app=todo-app
+kubectl logs -n secure-todo -l app=secure-todo-app
 
 # Test health endpoint
 curl http://localhost:31005/health
@@ -121,14 +121,14 @@ kubectl delete namespace secure-todo
 │  │  └──────────────────────┘   │   │
 │  │            ↓                │   │
 │  │  ┌──────────────────────┐   │   │
-│  │  │ Deployment: todo-app │   │   │
+│  │  │ Deployment: secure-todo-app │   │   │
 │  │  │  Replicas: 2         │   │   │
 │  │  │  Port: 8080          │   │   │
 │  │  │  User: 1000 (non-root)  │   │
 │  │  └──────────────────────┘   │   │
 │  │            ↓                │   │
 │  │  ┌──────────────────────┐   │   │
-│  │  │ Service: todo-app    │   │   │
+│  │  │ Service: secure-todo-app    │   │   │
 │  │  │  Type: NodePort      │   │   │
 │  │  │  Port: 31005         │   │   │
 │  │  └──────────────────────┘   │   │

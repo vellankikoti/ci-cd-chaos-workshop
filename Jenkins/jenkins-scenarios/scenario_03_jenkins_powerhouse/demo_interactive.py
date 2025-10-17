@@ -6,6 +6,9 @@ Jenkins Powerhouse - Interactive Demo
 Interactive demonstration of Jenkins advanced features with web applications.
 Shows the power of Jenkins plugins, advanced pipelines, and optimization through visual comparison.
 
+This is the interactive version of the main demo.py for advanced users.
+Use demo.py for the standard interactive experience.
+
 Usage:
     python3 demo_interactive.py
 """

@@ -14,6 +14,9 @@ app = Flask(__name__)
 
 # 🚨 VULNERABLE SECURITY ANTI-PATTERNS - DO NOT USE IN PRODUCTION!
 # These are intentionally vulnerable for educational purposes
+#
+# This file demonstrates what NOT to do in production.
+# Compare with secure_app.py to see the proper security implementation.
 
 # Hardcoded secrets (BAD!)
 DATABASE_PASSWORD = "admin123"

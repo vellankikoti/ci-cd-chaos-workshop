@@ -17,25 +17,25 @@ metadata:
   namespace: secure-todo
 type: Opaque
 stringData:
-  api-key: "@Zejog!beF8sHZnF0K@Xf@7EXSz0nIy$"
-  app-secret: "5CHAisquL6H3ZFnJ^J7WFcmoE$bp!dAF"
+  api-key: "vST%*S6A51PM!#lw67xIU1MYnk&DAvL0"
+  app-secret: "MBM8ar^k^kqs1EhyQbx54%zRrOp%srNw"
 
 ---
 # Todo App Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: todo-app
+  name: secure-todo-app
   namespace: secure-todo
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: todo-app
+      app: secure-todo-app
   template:
     metadata:
       labels:
-        app: todo-app
+        app: secure-todo-app
     spec:
       # Security: Non-root user
       securityContext:
@@ -44,7 +44,7 @@ spec:
         fsGroup: 1000
 
       containers:
-      - name: todo-app
+      - name: secure-todo-app
         image: secure-todo:latest
         imagePullPolicy: IfNotPresent
 
@@ -109,11 +109,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: todo-app
+  name: secure-todo-app
   namespace: secure-todo
 spec:
   selector:
-    app: todo-app
+    app: secure-todo-app
   ports:
   - port: 80
     targetPort: 8080

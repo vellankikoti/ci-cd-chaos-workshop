@@ -15,6 +15,9 @@ app = Flask(__name__)
 
 # 🚨 FRAGILE RESILIENCE ANTI-PATTERNS - DO NOT USE IN PRODUCTION!
 # These are intentionally fragile for educational purposes
+# 
+# This file demonstrates what NOT to do in production.
+# Compare with resilient_app.py to see the proper implementation.
 
 # Global variables to simulate fragility
 failure_count = 0

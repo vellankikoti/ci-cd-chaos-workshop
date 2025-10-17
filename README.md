@@ -21,6 +21,8 @@ Welcome to the **CI/CD Chaos Workshop** - where we intentionally break things to
 ## 🚀 **Getting Started - Choose Your Path**
 
 > **📖 Need detailed instructions?** See [GETTING_STARTED.md](GETTING_STARTED.md) for a complete step-by-step guide.
+> 
+> **📁 File Structure Guide?** See [FILE_STRUCTURE_GUIDE.md](FILE_STRUCTURE_GUIDE.md) for understanding the standardized file naming and organization.
 
 ### **Option 1: 🌐 GitHub Codespaces (Recommended)**
 **Best for: Beginners, quick start, no setup issues**

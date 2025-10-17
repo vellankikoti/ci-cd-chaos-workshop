@@ -2,6 +2,8 @@
 """
 🚀 Blue-Green Deployment Demo App
 Simple Flask app that displays version information
+
+Blue-Green Deployment Demo App
 """
 from flask import Flask, jsonify, render_template_string
 import os

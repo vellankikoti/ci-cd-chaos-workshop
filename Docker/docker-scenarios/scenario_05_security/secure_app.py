@@ -15,6 +15,9 @@ app = Flask(__name__)
 
 # 🔒 SECURE SECURITY BEST PRACTICES - Production Ready!
 # These demonstrate proper security practices
+#
+# This file demonstrates the CORRECT way to implement security.
+# Compare with vulnerable_app.py to see the anti-patterns to avoid.
 
 # Use environment variables for secrets (GOOD!)
 DATABASE_PASSWORD = os.getenv('DB_PASSWORD', 'NOT_SET')

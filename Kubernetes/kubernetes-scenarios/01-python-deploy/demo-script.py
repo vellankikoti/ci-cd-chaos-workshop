@@ -2,6 +2,9 @@
 """
 🎭 Universal Chaos Demo Script
 Cross-platform demo of manual deployment chaos that works everywhere!
+
+This is the main demo script for Kubernetes scenario 1.
+For other scenarios, see their respective demo.py files.
 """
 
 import subprocess
@@ -128,7 +131,7 @@ def main():
     print_header("CHAOS DEMONSTRATION COMPLETE")
     print("😈 Chaos Agent: 'See? Manual deployments are chaos!'")
     print("\n🦸‍♂️ But fear not! The Python Hero has a solution...")
-    print("Run the hero solution: python3 hero-solution/deploy-vote-app.py")
+    print("Run the hero solution: python3 hero-solution/deploy.py")
 
     # Cleanup
     print("\n🧹 Cleaning up demo resources...")

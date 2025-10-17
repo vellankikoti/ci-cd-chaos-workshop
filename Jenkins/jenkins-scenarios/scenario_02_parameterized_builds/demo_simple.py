@@ -2,6 +2,9 @@
 """
 Simple Demo for Scenario 2: Parameterized Builds
 Quick demonstration of Jenkins parameterized build concepts
+
+This is a simplified version of the main demo.py for quick testing.
+Use demo.py for the full interactive experience with web applications.
 """
 
 import time
@@ -21,10 +24,11 @@ def print_section(title):
 def simulate_parameterized_build():
     """Simulate a parameterized build process"""
     
-    print_header("🚀 Jenkins Parameterized Builds Demo")
+    print_header("🚀 Jenkins Parameterized Builds - Simple Demo")
     
     print("""
-This demo shows the power of Jenkins parameterized builds:
+This is a simplified demo. For the full interactive experience with web applications,
+run: python3 demo.py
 
 ✅ What you'll learn:
    • How to create parameterized pipelines
@@ -147,6 +151,9 @@ This demo shows the power of Jenkins parameterized builds:
    • Experience environment-specific deployments
    • Learn feature flag implementation
    • See real-time parameter feedback
+
+💡 For the full interactive experience with web applications, run:
+   python3 demo.py
 """)
 
 def main():

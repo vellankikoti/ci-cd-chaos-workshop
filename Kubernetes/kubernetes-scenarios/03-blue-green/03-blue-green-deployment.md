@@ -29,12 +29,32 @@ cd hero-solution
 pip3 install -r requirements.txt
 ```
 
-### Deploy Blue-Green App (The Easy Way)
+### Deploy Blue-Green App
 
 ```bash
-# ONE command for complete blue-green setup
+# ONE command - automatically uses enhanced version if available!
 python3 deploy.py
+kubectl port-forward -n blue-green-demo svc/demo-app 31006:80
+# Open: http://localhost:31006
 ```
+
+### 🌟 Smart Auto-Detection!
+
+The `deploy.py` script **automatically detects** if enhanced files exist and deploys the best version:
+
+- ✅ **Enhanced version found?** → Deploys **stunning traffic visualization** with interactive controls!
+- ✅ **Enhanced version not found?** → Deploys standard version (still great!)
+
+**No need to choose** - it picks the best version automatically!
+
+**Enhanced Features** (when available):
+- 🌊 **Animated Traffic Particles** - Watch traffic flow from load balancer to pods!
+- 🎛️ **Interactive Traffic Slider** - Gradual 0-100% traffic control (canary)
+- 📊 **Live Pod Health** - 6 pods with heartbeat animations
+- 🚀 **One-Click Switch** - Smooth animated transition to green
+- ↩️ **One-Click Rollback** - Instant rollback to blue
+- 📈 **Real-Time Metrics** - Requests, response time, uptime
+- 📜 **Request History** - See which pods handle requests
 
 **The script will output ready-to-copy commands!** Look for:
 

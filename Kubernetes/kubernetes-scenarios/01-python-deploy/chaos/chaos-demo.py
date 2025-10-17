@@ -197,7 +197,7 @@ def main():
     print_header("🎓 Chaos Demo Complete!")
 
     print(f"\n{Colors.GREEN}Next Steps:{Colors.NC}")
-    print(f"   1. Run the hero solution: {Colors.BOLD}python3 hero-solution/deploy-vote-app.py{Colors.NC}")
+    print(f"   1. Run the hero solution: {Colors.BOLD}python3 hero-solution/deploy.py{Colors.NC}")
     print(f"   2. Compare: chaos vs automation")
     print(f"   3. Test the working vote app")
     print(f"   4. Never write manual YAML again! 🎉")

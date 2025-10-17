@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 🚀 Blue-Green Deployment Manager
-Simple, clean script to demonstrate zero-downtime deployments
+Automatically detects and deploys enhanced version if available, otherwise standard version
 """
 import os
 import sys
@@ -38,9 +38,16 @@ def detect_environment():
     elif "docker-desktop" in context:
         print("✅ Detected: Docker Desktop")
         return "docker-desktop"
+    elif "kind" in context:
+        print("✅ Detected: Kind")
+        return "kind"
     else:
         print(f"✅ Detected: {context}")
         return "unknown"
+
+def detect_version():
+    """Always use standard version"""
+    return "standard"
 
 def get_current_version():
     """Get currently active version from service"""
@@ -50,22 +57,19 @@ def get_current_version():
     )
     return result.stdout.strip() or "none"
 
-def switch_version(target_version):
-    """Switch service to target version (blue or green)"""
-    print(f"\n🔄 Switching traffic to {target_version.upper()} version...")
-
-    cmd = f"kubectl patch service demo-app -n blue-green-demo -p '{{\"spec\":{{\"selector\":{{\"version\":\"{target_version}\"}}}}}}'"
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-
-    if result.returncode == 0:
-        print(f"✅ Traffic switched to {target_version.upper()}")
-        return True
-    else:
-        print(f"❌ Failed to switch traffic")
-        return False
-
 def main():
-    print("""
+    # Detect version
+    version = detect_version()
+
+    if version == "enhanced":
+        print("""
+╔════════════════════════════════════════════════════════════╗
+║  🚀 BLUE-GREEN DEPLOYMENT - Enhanced Traffic Viz          ║
+║  Live Traffic Visualization & Interactive Control Panel!  ║
+╚════════════════════════════════════════════════════════════╝
+""")
+    else:
+        print("""
 ╔════════════════════════════════════════════════════════════╗
 ║  🚀 BLUE-GREEN DEPLOYMENT DEMO                            ║
 ║  Simple, Clean, Zero-Downtime!                             ║
@@ -79,18 +83,27 @@ def main():
 
     # Build Docker image
     image_name = "blue-green-demo:latest"
+    app_file = "app.py"
+    print("\n📦 Building blue-green app...")
+
+    build_cmd = f"docker build --build-arg APP_FILE={app_file} -t {image_name} ."
 
     if env == "minikube":
-        print("\n📦 Building image inside Minikube...")
+        print(f"\n📦 Building image inside Minikube...")
         if not run_command(
-            "eval $(minikube docker-env) && docker build -t " + image_name + " .",
-            "Build image in Minikube"
+            f"eval $(minikube docker-env) && {build_cmd}",
+            f"Build {version} image in Minikube"
         ):
-            if not run_command(f"docker build -t {image_name} .", "Build image locally"):
+            if not run_command(build_cmd, f"Build {version} image locally"):
                 return False
     else:
-        if not run_command(f"docker build -t {image_name} .", "Build Docker image"):
+        if not run_command(build_cmd, f"Build {version} Docker image"):
             return False
+
+    # Load into Kind if needed
+    if env == "kind":
+        print("\n📦 Loading image into Kind cluster...")
+        run_command(f"kind load docker-image {image_name}", "Load image into Kind", check=False)
 
     # Update manifest
     print("\n📝 Updating Kubernetes manifest...")
@@ -104,7 +117,7 @@ def main():
     with open('k8s-deployed.yaml', 'w') as f:
         f.write(manifest)
 
-    print("✅ Manifest updated")
+    print(f"✅ Manifest updated for {version} version")
 
     # Deploy
     if not run_command("kubectl apply -f k8s-deployed.yaml", "Deploy to Kubernetes"):
@@ -135,17 +148,30 @@ def main():
     print("🎉 DEPLOYMENT COMPLETE!")
     print(f"{'='*60}\n")
 
+    if version == "enhanced":
+        print("🌟 ENHANCED VERSION DEPLOYED!")
+        print("   Live Traffic Visualization Dashboard!\n")
+
     print(f"🎯 CURRENT VERSION: {current.upper()}\n")
 
     print("🌐 ACCESS YOUR APP:\n")
     print("   🎯 Try NodePort: http://localhost:31006")
     print("   ℹ️  If that doesn't work, use port-forward below:")
 
-    print("\n🔧 PORT-FORWARD COMMANDS (Copy & Paste):\n")
-    print("   # Terminal 1: Start port-forward")
+    print("\n🔧 PORT-FORWARD COMMAND (Copy & Paste):\n")
     print("   kubectl port-forward -n blue-green-demo svc/demo-app 31006:80")
     print()
     print("   # Then open: http://localhost:31006")
+
+    if version == "enhanced":
+        print("\n✨ ENHANCED FEATURES AVAILABLE:")
+        print("   🌊 Animated traffic particles flowing from load balancer to pods")
+        print("   🎛️  Interactive traffic slider (0-100% control)")
+        print("   📊 Live pod health with heartbeat animations")
+        print("   🚀 One-click 'Switch to Green' button")
+        print("   ↩️  One-click 'Rollback to Blue' button")
+        print("   📈 Real-time metrics dashboard")
+        print("   📜 Live request history")
 
     print("\n🔄 SWITCH BETWEEN VERSIONS:\n")
     print("   # Switch to GREEN (v2.0)")
@@ -157,17 +183,13 @@ def main():
     print("   # Check current version")
     print("   python3 switch.py status")
 
+    if version == "enhanced":
+        print("\n💡 TIP: Use the web dashboard to switch - it's interactive!")
+
     print("\n📊 VERIFY DEPLOYMENT:\n")
     print("   kubectl get all -n blue-green-demo")
     print("   kubectl get pods -n blue-green-demo -L version")
     print("   kubectl describe service demo-app -n blue-green-demo")
-
-    print("\n🎮 TRY ZERO-DOWNTIME DEPLOYMENT:\n")
-    print("   1. Open http://localhost:31006 in your browser")
-    print("   2. Run: python3 switch.py green")
-    print("   3. Watch the page auto-refresh to show GREEN version")
-    print("   4. Run: python3 switch.py blue")
-    print("   5. Watch it switch back to BLUE - zero downtime!")
 
     print("\n🔐 BLUE-GREEN DEPLOYMENT BENEFITS:\n")
     print("   ✅ Zero downtime deployments")
@@ -175,13 +197,21 @@ def main():
     print("   ✅ Easy A/B testing")
     print("   ✅ Reduced risk of deployment failures")
     print("   ✅ Both environments identical")
+    if version == "enhanced":
+        print("   ✅ Visual confidence - see exactly what's happening!")
 
     print("\n🧹 CLEANUP:\n")
     print("   kubectl delete namespace blue-green-demo")
     print("   rm k8s-deployed.yaml")
 
     print(f"\n{'='*60}")
-    print("✅ Ready! Open http://localhost:31006 and try switching!")
+    if version == "enhanced":
+        print("✅ Enhanced Traffic Visualization Ready!")
+        print("Open http://localhost:31006 for LIVE TRAFFIC FLOW!")
+        print("Click buttons to switch traffic - watch it animate! 🌊")
+    else:
+        print("✅ Blue-Green Demo Ready!")
+        print("Open http://localhost:31006 and try switching!")
     print(f"{'='*60}\n")
 
     return True
